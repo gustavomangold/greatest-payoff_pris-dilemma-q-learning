@@ -56,6 +56,8 @@ const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
 double     P_DIFFUSION;
 
+const double K_FERMI = 0.1;
+
 /****** Q-Learning **********/
 double        EPSILON	  = 0.02; //1.0;
 const double  EPSILON_MIN = 0.02; //0.1;
@@ -105,7 +107,7 @@ void initial_state(int *s, int lsize, int initialstate, double probc, double pro
 
 //double calculate_payoff(int ss, int nc, int nd);
 double pd_payoff(int *s, int ss, int ii);
-void   compare_payoff(float *payoff, int *s, int *state_max, int chosen_site, float own_payoff);
+void   update_fermi(float *payoff, int *s, int *state_max, int chosen_site, float own_payoff);
 //void dynamics (int *s, float *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
 
 
@@ -321,25 +323,24 @@ void count_neighbours(int *s, int ii, int *nc, int *nd)
 	return pay;
 }*/
 
+double calculate_fermi_probability(int payoff_site, int payoff_neighbour){
+    return 1 / (1 + exp(-((float) payoff_neighbour - (float) payoff_site)) / K_FERMI);
+}
+
 /***************************************************************************
  *                    Payoff comparison                                    *
  ***************************************************************************/
-void compare_payoff(float *payoff, int *s, int *state_max, int chosen_site, float own_payoff)
+void update_fermi(float *payoff, int *s, int *new_state, int chosen_site, float own_payoff)
 {
-    float max_payoff = own_payoff;
+    int neigh_site = (int) (NUM_NEIGH * FRANDOM1);
 
-    *state_max = s[chosen_site];
-
-    //printf("%d, %f\n", *state_max, own_payoff);
-    for (int k = 0; k < NUM_NEIGH; ++k)
-	{
-	    //printf("%d, %f, %f\n", s[neigh[chosen_site][k]], payoff[neigh[chosen_site][k]], max_payoff);
-	    if ((s[neigh[chosen_site][k]] != 0) && (payoff[neigh[chosen_site][k]] > max_payoff)){
-			*state_max = s[neigh[chosen_site][k]];
-			max_payoff = payoff[neigh[chosen_site][k]];
-		}
+    if ((s[neigh[chosen_site][neigh_site]] != 0) && (FRANDOM1 > calculate_fermi_probability(payoff[chosen_site],
+        payoff[neigh[chosen_site][neigh_site]]))){
+        *new_state = s[neigh[chosen_site][neigh_site]];
+        return;
     }
-    //printf("%d\n\n", *state_max);
+    *new_state = s[chosen_site];
+
     return;
 }
 
@@ -446,7 +447,7 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 
 			if (new_action_index != MOVEindex)
 			{
-				compare_payoff(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
+				update_fermi(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
 
 				double final_payoff   = pd_payoff(s, state_max, chosen_site);
