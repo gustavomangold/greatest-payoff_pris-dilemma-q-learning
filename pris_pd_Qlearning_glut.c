@@ -36,8 +36,10 @@ const int    TOTALSTEPS  = 5000; //100000				      /*total number of generations
 
 const int  C              =  1;
 const int  D              = -1; //#define D (-1)
-const int  MOVE			  =  0;
-const int  COMPARE        =  2;
+
+const int  COMPARE        =  3;
+const int  MOVE_AS_C	  =  4;
+const int  MOVE_AS_D      =  5;
 
 #define NUM_STATES  	   2
 
@@ -45,12 +47,13 @@ const int Dindex  		 = 0;
 const int Cindex  		 = 1;
 
 const int COMPAREindex   = 0;
-const int MOVEindex      = 1;
+const int MOVE_AS_Cindex = 1;
+const int MOVE_AS_Dindex = 3;
 
 const int STATES[NUM_STATES]   = {D, C};
 
-#define NUM_ACTIONS 	   2
-const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE};
+#define NUM_ACTIONS 	   3
+const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE_AS_C, MOVE_AS_D};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
@@ -444,7 +447,7 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 			else // greedy
 				find_maximum_Q_value(chosen_site, &initial_s_index, &new_action, &new_action_index, &maxQ);
 
-			if (new_action_index != MOVEindex)
+			if ((new_action_index != MOVE_AS_Cindex) && (new_action_index != MOVE_AS_Dindex))
 			{
 				compare_payoff(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
@@ -469,6 +472,12 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 
 				if (moved)
 				{
+				    if (new_action_index == MOVE_AS_C){
+						s[chosen_site] = C;
+					}
+					else {
+					    s[chosen_site] = D;
+					}
     				// payoff changes in new site
     				double final_payoff  = pd_payoff(s, initial_s, chosen_site);
     				reward               = final_payoff;
@@ -599,7 +608,7 @@ void file_initialization(void)
 
 	//fprintf(freq,"#t  f_c  f_d  f_ac  Qcc  Qcd Qdc Qdd P\n");
 
-	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qcb Qdm Qcm\n");
+	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qcb Qdmc Qcmc Qdmd Qcmd\n");
 
 	for (i=0;i<MEASURES;++i)
 	{
