@@ -37,9 +37,9 @@ const int    TOTALSTEPS  = 5000; //100000				      /*total number of generations
 const int  C              =  1;
 const int  D              = -1; //#define D (-1)
 
-const int  COMPARE        =  3;
-const int  MOVE_AS_C	  =  4;
-const int  MOVE_AS_D      =  5;
+const int  COMPARE        =  0;
+const int  MOVE_AS_C	  =  2;
+const int  MOVE_AS_D      =  3;
 
 #define NUM_STATES  	   2
 
@@ -564,7 +564,7 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/NEW_ACTIONS_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                               P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
