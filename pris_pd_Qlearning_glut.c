@@ -324,7 +324,7 @@ void count_neighbours(int *s, int ii, int *nc, int *nd)
 }*/
 
 double calculate_fermi_probability(int payoff_site, int payoff_neighbour){
-    return 1 / (1 + exp(-((float) payoff_neighbour - (float) payoff_site)) / K_FERMI);
+    return 1. / (1. + exp(-(1. * payoff_neighbour - 1. * payoff_site)) / K_FERMI);
 }
 
 /***************************************************************************
@@ -333,6 +333,8 @@ double calculate_fermi_probability(int payoff_site, int payoff_neighbour){
 void update_fermi(float *payoff, int *s, int *new_state, int chosen_site, float own_payoff)
 {
     int neigh_site = (int) (NUM_NEIGH * FRANDOM1);
+
+    printf("%f \n", calculate_fermi_probability(payoff[chosen_site], payoff[neigh[chosen_site][neigh_site]]));
 
     if ((s[neigh[chosen_site][neigh_site]] != 0) && (FRANDOM1 > calculate_fermi_probability(payoff[chosen_site],
         payoff[neigh[chosen_site][neigh_site]]))){
@@ -450,9 +452,10 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 				update_fermi(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
 
+				s[chosen_site] = state_max;
+
 				double final_payoff   = pd_payoff(s, state_max, chosen_site);
 
-				s[chosen_site] = state_max;
 				reward         = final_payoff;
 
 				// Q[chosen_site][initial_s_index][new_action_index] = (1.- ALPHA)*Q[chosen_site][initial_s_index][new_action_index]  + ALPHA*(final_payoff + GAMMA*new_maxQ);
