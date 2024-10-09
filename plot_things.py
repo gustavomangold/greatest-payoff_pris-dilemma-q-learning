@@ -26,7 +26,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     cbar = plt.colorbar()
     cbar.set_ticks(np.arange(round(min(z), 1), round(max(z), 1), .1))
 
-    plt.savefig('heatmap_coop_versus_prob-diff_and_alpha-share.png', dpi=400, bbox_inches='tight')
+    plt.savefig('new_states-heatmap_coop_versus_prob-diff_and_alpha-share.png', dpi=400, bbox_inches='tight')
     plt.clf()
 
     return
