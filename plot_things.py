@@ -17,8 +17,8 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     y = np.array(y_list)
     z = np.array(cooperation_list)
 
-    plt.xlabel(r'$b$')
-    plt.ylabel(r'$\rho$')
+    plt.xlabel(r'$\rho$')
+    plt.ylabel(r'$p_d$')
 
     #plt.gca().invert_yaxis()
 
@@ -63,7 +63,7 @@ def plot_data_values(filename, data, colnames, color, identifier: str):
     plt.cla()
     plt.close()
 
-path = './data/'
+path = './data_less_steps/'
 
 color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
 
@@ -79,7 +79,7 @@ index = 0
 for filename in glob.glob(path + 'T*.dat'):
     data = pd.read_csv(filename, comment = '#', delimiter = ' ', names = colnames, index_col = False)
 
-    key = float(filename.split('rho')[1][0:4])
+    key = float(filename.split('P_DIFFUSION')[1][0:4])
 
     data['mean_coop'] = data['f_c'] / (data['f_d'] + data['f_c'])
 
@@ -99,7 +99,7 @@ for filename in glob.glob(path + 'T*.dat'):
     """plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
     plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')"""
     try:
-        x_variable  = float(filename.split('T')[1][:4])
+        x_variable  = float(filename.split('rho')[1][:4])
         mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
         var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
@@ -130,16 +130,15 @@ marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
-    if key == 1:
-        color_both_plots = next(color)
-        plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
-            label = r'$\rho = $' + str(key), color = color_both_plots)
-        #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
-        index += 1
+    color_both_plots = next(color)
+    plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
+        label = r'$p_d = $' + str(key), color = color_both_plots)
+    #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
+    index += 1
 
 plt.title('')
 plt.ylim(0., 1.)
-plt.xlabel(r'$b$')
+plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5)
 plt.savefig('cooperation_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
