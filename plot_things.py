@@ -17,8 +17,8 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     y = np.array(y_list)
     z = np.array(cooperation_list)
 
-    plt.xlabel(r'$b$')
-    plt.ylabel(r'$\rho$')
+    plt.xlabel(r'$\rho$')
+    plt.ylabel(r'$p_d$')
 
     #plt.gca().invert_yaxis()
 
@@ -80,7 +80,10 @@ match_str = 'T*.dat'
 for filename in glob.glob(path + match_str):
     data = pd.read_csv(filename, comment = '#', delimiter = ' ', names = colnames, index_col = False)
 
-    key = float(filename.split('P_DIFFUSION')[1][0:4])
+    x_variable_identifier = 'rho'
+    key_identifier        = 'P_DIFFUSION'
+
+    key = float(filename.split(key_identifier)[1][0:4])
 
     data['mean_coop'] = data['f_c'] / (data['f_d'] + data['f_c'])
 
@@ -100,7 +103,7 @@ for filename in glob.glob(path + match_str):
     """plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
     plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')"""
     try:
-        x_variable  = float(filename.split('rho')[1][0:4])
+        x_variable  = float(filename.split(x_variable_identifier)[1][0:4])
         mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
         var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
@@ -127,7 +130,7 @@ for filename in glob.glob(path + match_str):
         print('Error for' + filename)
         print(exc)
 
-#plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
+plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
 plt.style.use('seaborn-v0_8-ticks')
 
