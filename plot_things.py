@@ -100,7 +100,7 @@ for filename in glob.glob(path + match_str):
     """plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
     plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')"""
     try:
-        x_variable  = float(filename.split('_T')[1][0:4])
+        x_variable  = float(filename.split('rho')[1][0:4])
         mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
         var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
@@ -108,8 +108,8 @@ for filename in glob.glob(path + match_str):
             plot_data_values(filename, data, colnames, color, 'q-table')
             plot_data_values(filename, data, colnames, color, 'cooperation')'''
 
-        plot_data_values(filename, data, colnames, color, 'q-table')
-        plot_data_values(filename, data, colnames, color, 'cooperation')
+        """plot_data_values(filename, data, colnames, color, 'q-table')
+        plot_data_values(filename, data, colnames, color, 'cooperation')"""
 
         if key in (cooperation_dict.keys()):
             cooperation_dict[key].append([x_variable, float(mean_coop)])
@@ -143,10 +143,10 @@ for key in sorted(cooperation_dict.keys()):
 
 plt.title('')
 plt.ylim(0., 1.)
-plt.xlabel(r'$b$')
+plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5)
-plt.savefig('cooperation_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
+plt.savefig('new_states-cooperation_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
 
 plt.close()
 plt.clf()
@@ -164,7 +164,7 @@ plt.title('')
 plt.xlabel(r'$b$')
 plt.ylabel(r'$\sigma ^2$')
 #plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5)
-plt.savefig('variance_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
+plt.savefig('new_states-variance_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
 
 """index = 0
 for filename in glob.glob(path + 'T*.dat'):
