@@ -428,7 +428,7 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 
 	for (j=0; j < L2; ++j)
     {
-		chosen_index = (int)(num_empty_sites + FRANDOM1*(L2-num_empty_sites));
+		chosen_index = j;//(int)(num_empty_sites + FRANDOM1*(L2-num_empty_sites));
 		chosen_site  = empty_matrix[chosen_index];
 
 		initial_s = s[chosen_site];
@@ -555,7 +555,7 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/SEQUENTIAL_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                               P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
