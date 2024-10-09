@@ -14,7 +14,7 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 1;
+const int NUM_CONF       = 20;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
@@ -23,7 +23,7 @@ const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: 
 const double PROB_C	     = 0.50;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 5000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -330,16 +330,16 @@ void compare_payoff(float *payoff, int *s, int *state_max, int chosen_site, floa
 
     *state_max = s[chosen_site];
 
-    //printf("%d, %f\n", *state_max, own_payoff);
+    //if (s[chosen_site] == C) {printf("%d, %f, %d\n", *state_max, own_payoff, chosen_site);}
     for (int k = 0; k < NUM_NEIGH; ++k)
 	{
-	    //printf("%d, %f, %f\n", s[neigh[chosen_site][k]], payoff[neigh[chosen_site][k]], max_payoff);
-	    if ((s[neigh[chosen_site][k]] != 0) && (payoff[neigh[chosen_site][k]] > max_payoff)){
+	    //if (s[chosen_site] == C) { printf("%d, %f, %f, %ld\n", s[neigh[chosen_site][k]], payoff[neigh[chosen_site][k]], max_payoff, neigh[chosen_site][k]);}
+		if ((s[neigh[chosen_site][k]] != 0) && (payoff[neigh[chosen_site][k]] > max_payoff)){
 			*state_max = s[neigh[chosen_site][k]];
 			max_payoff = payoff[neigh[chosen_site][k]];
 		}
     }
-    //printf("%d\n\n", *state_max);
+    //if (s[chosen_site] == C ){printf("%d\n\n", *state_max);}
     return;
 }
 
@@ -449,9 +449,10 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 				compare_payoff(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
 
+				s[chosen_site] = state_max;
+
 				double final_payoff   = pd_payoff(s, state_max, chosen_site);
 
-				s[chosen_site] = state_max;
 				reward         = final_payoff;
 
 				// Q[chosen_site][initial_s_index][new_action_index] = (1.- ALPHA)*Q[chosen_site][initial_s_index][new_action_index]  + ALPHA*(final_payoff + GAMMA*new_maxQ);
