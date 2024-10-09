@@ -428,7 +428,7 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 
 	for (j=0; j < L2; ++j)
     {
-		chosen_index = (int)(num_empty_sites + FRANDOM1*(L2-num_empty_sites));
+		chosen_index = j
 		chosen_site  = empty_matrix[chosen_index];
 
 		initial_s = s[chosen_site];
@@ -448,8 +448,6 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 			{
 				compare_payoff(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
-
-				s[chosen_site] = state_max;
 
 				double final_payoff   = pd_payoff(s, state_max, chosen_site);
 
@@ -485,9 +483,12 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 			}
 		} // if(s1!=0)
 	}
-	for (i=num_empty_sites; i< L2; ++i)
+	for (i=num_empty_sites; i < L2; ++i)
 	{
 		int s1 = empty_matrix[i];
+
+		// update in parallel
+		s[s1] = state_max;
 
 		switch (s[s1])
 		{
@@ -556,7 +557,7 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/parallel/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                               P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
