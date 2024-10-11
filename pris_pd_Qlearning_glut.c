@@ -446,10 +446,10 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 
 			if (new_action_index != MOVEindex)
 			{
+			    double final_payoff   = pd_payoff(s, initial_s, chosen_site);
+
 				compare_payoff(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
-
-				double final_payoff   = pd_payoff(s, state_max, chosen_site);
 
 				s[chosen_site] = state_max;
 				reward         = final_payoff;
@@ -555,7 +555,7 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/stochastic/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                               P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");

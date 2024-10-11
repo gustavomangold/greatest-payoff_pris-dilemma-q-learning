@@ -63,7 +63,7 @@ def plot_data_values(filename, data, colnames, color, identifier: str):
     plt.cla()
     plt.close()
 
-path = './data_less_steps/'
+path = './data/stochastic/'
 
 color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
 
