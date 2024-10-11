@@ -475,6 +475,8 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
     				double final_payoff  = pd_payoff(s, initial_s, chosen_site);
     				reward               = final_payoff;
 
+                    array_to_update[chosen_site] = initial_s;
+
     				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
     				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA*new_maxQ
