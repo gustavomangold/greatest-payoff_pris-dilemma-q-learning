@@ -448,17 +448,17 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 			{
 			    double final_payoff   = pd_payoff(s, initial_s, chosen_site);
 
-				compare_payoff(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
+				compare_payoff(payoff, s, &state_max, chosen_site, final_payoff);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
 
-				s[chosen_site] = state_max;
-				reward         = final_payoff;
+				reward = final_payoff;
 
 				// Q[chosen_site][initial_s_index][new_action_index] = (1.- ALPHA)*Q[chosen_site][initial_s_index][new_action_index]  + ALPHA*(final_payoff + GAMMA*new_maxQ);
 				// This is equivalent to expression above:
 				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA*(reward + GAMMA*new_maxQ
 										- Q[chosen_site][initial_s_index][new_action_index]);
 
+				s[chosen_site]      = state_max;
 				payoff[chosen_site] = final_payoff;
 
 			}
