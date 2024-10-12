@@ -14,7 +14,7 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 20;
+const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
@@ -23,7 +23,7 @@ const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: 
 const double PROB_C	     = 0.50;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 10000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -72,18 +72,18 @@ const int L2   = LSIZE * LSIZE;
 unsigned long  right[LL], left[LL], top[LL], down[LL], neigh[LL][NUM_NEIGH];
 unsigned long  num_empty_sites, empty_matrix[LL], which_empty[LL];
 int            s[LL];
-float 		   payoff[LL];
+double 		   payoff[LL];
 
 double		   Q[LL][NUM_STATES][NUM_ACTIONS];
 
 unsigned long  seed, numsteps, num_c, num_cd, num_dc, num_d;
 long           t[MEASURES];
 double         num_c_ave[MEASURES], num_d_ave[MEASURES], num_cd_ave[MEASURES], Q_ave[MEASURES][NUM_STATES][NUM_ACTIONS];
-float          TEMPTATION;
+double         TEMPTATION;
 
-const float    SUCKER = 0.0;
-const float    PP     = 0.0;
-const float	   RR     = 1.0;
+const double    SUCKER = 0.0;
+const double    PP     = 0.0;
+const double	RR     = 1.0;
 
 unsigned long  NUM_DEFECTS;
 
@@ -98,15 +98,15 @@ gsl_rng * r;
 ***************************************************************************/
 void file_initialization(void);
 void initialization(void);
-void local_dynamics(int *s, float *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
+void local_dynamics(int *s, double *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
 void count_neighbours(int *s, int ii, int *nc, int *nd);
 void determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
 void initial_state(int *s, int lsize, int initialstate, double probc, double probd);
 
 //double calculate_payoff(int ss, int nc, int nd);
 double pd_payoff(int *s, int ss, int ii);
-void   compare_payoff(float *payoff, int *s, int *state_max, int chosen_site, float own_payoff);
-//void dynamics (int *s, float *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
+void   compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, double own_payoff);
+//void dynamics (int *s, double *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
 
 
 unsigned long empty_site(unsigned long ll, int *nn,
@@ -324,9 +324,9 @@ void count_neighbours(int *s, int ii, int *nc, int *nd)
 /***************************************************************************
  *                    Payoff comparison                                    *
  ***************************************************************************/
-void compare_payoff(float *payoff, int *s, int *state_max, int chosen_site, float own_payoff)
+void compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, double own_payoff)
 {
-    float max_payoff = own_payoff;
+    double max_payoff = own_payoff;
 
     *state_max = s[chosen_site];
 
@@ -406,10 +406,10 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 /***************************************************************************
  *                           Local Dynamics                                *
  ***************************************************************************/
-void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
+void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
 {
 	int stemp[L2];
-	int i,j,chosen_index, chosen_site;
+	int i, j, chosen_index, chosen_site;
 	int initial_s_index, new_action_index;
 	int initial_s;
 
@@ -599,7 +599,7 @@ void file_initialization(void)
 
 	//fprintf(freq,"#t  f_c  f_d  f_ac  Qcc  Qcd Qdc Qdd P\n");
 
-	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qcb Qdm Qcm\n");
+	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdm Qcb Qcm\n");
 
 	for (i=0;i<MEASURES;++i)
 	{
