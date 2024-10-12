@@ -72,18 +72,18 @@ const int L2   = LSIZE * LSIZE;
 unsigned long  right[LL], left[LL], top[LL], down[LL], neigh[LL][NUM_NEIGH];
 unsigned long  num_empty_sites, empty_matrix[LL], which_empty[LL];
 int            s[LL];
-float 		   payoff[LL];
+double 		   payoff[LL];
 
 double		   Q[LL][NUM_STATES][NUM_ACTIONS];
 
 unsigned long  seed, numsteps, num_c, num_cd, num_dc, num_d;
 long           t[MEASURES];
 double         num_c_ave[MEASURES], num_d_ave[MEASURES], num_cd_ave[MEASURES], Q_ave[MEASURES][NUM_STATES][NUM_ACTIONS];
-float          TEMPTATION;
+double         TEMPTATION;
 
-const float    SUCKER = 0.0;
-const float    PP     = 0.0;
-const float	   RR     = 1.0;
+const double    SUCKER = 0.0;
+const double    PP     = 0.0;
+const double	RR     = 1.0;
 
 unsigned long  NUM_DEFECTS;
 
@@ -98,14 +98,14 @@ gsl_rng * r;
 ***************************************************************************/
 void file_initialization(void);
 void initialization(void);
-void local_dynamics(int *s, float *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
+void local_dynamics(int *s, double *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
 void count_neighbours(int *s, int ii, int *nc, int *nd);
 void determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
 void initial_state(int *s, int lsize, int initialstate, double probc, double probd);
 
 //double calculate_payoff(int ss, int nc, int nd);
 double pd_payoff(int *s, int ss, int ii);
-void   compare_payoff(float *payoff, int *s, int *state_max, int chosen_site, float own_payoff);
+void   compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, double own_payoff);
 //void dynamics (int *s, float *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
 
 
@@ -324,22 +324,23 @@ void count_neighbours(int *s, int ii, int *nc, int *nd)
 /***************************************************************************
  *                    Payoff comparison                                    *
  ***************************************************************************/
-void compare_payoff(float *payoff, int *s, int *state_max, int chosen_site, float own_payoff)
+void compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, double own_payoff)
 {
-    float max_payoff = own_payoff;
+    double max_payoff = own_payoff;
 
     *state_max = s[chosen_site];
 
-    //if (s[chosen_site] == C) {printf("%d, %f, %d\n", *state_max, own_payoff, chosen_site);}
+    //printf("%d, %f, %d\n", *state_max, own_payoff, chosen_site);
     for (int k = 0; k < NUM_NEIGH; ++k)
 	{
-	    //if (s[chosen_site] == C) { printf("%d, %f, %f, %ld\n", s[neigh[chosen_site][k]], payoff[neigh[chosen_site][k]], max_payoff, neigh[chosen_site][k]);}
+	    //printf("%d, %f, %f, %ld\n", s[neigh[chosen_site][k]], payoff[neigh[chosen_site][k]],
+				 //max_payoff, neigh[chosen_site][k]);
 		if ((s[neigh[chosen_site][k]] != 0) && (payoff[neigh[chosen_site][k]] > max_payoff)){
 			*state_max = s[neigh[chosen_site][k]];
 			max_payoff = payoff[neigh[chosen_site][k]];
 		}
     }
-    //if (s[chosen_site] == C ){printf("%d\n\n", *state_max);}
+    //printf("%d\n\n", *state_max);
     return;
 }
 
@@ -406,15 +407,16 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 /***************************************************************************
  *                           Local Dynamics                                *
  ***************************************************************************/
-void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
+void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
 {
-	int stemp[L2], payoff_to_update[L2]; // array_to_update[L2],
-	int i,j,chosen_index, chosen_site;
+	int stemp[L2]; // array_to_update[L2],
+	int i, j, chosen_site;
 	int initial_s_index, new_action_index;
 	int initial_s;
 
 	double maxQ, new_maxQ;
 	double reward;
+	double payoff_to_update[L2];
 	int    state_max;
 	int    new_action, future_action, future_action_index;
 
@@ -430,8 +432,7 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 
 	for (j = 0; j < L2; ++j)
     {
-		chosen_index = j;
-		chosen_site  = empty_matrix[chosen_index];
+		chosen_site  = empty_matrix[j];
 
 		initial_s    = s[chosen_site];
 
@@ -458,6 +459,8 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 
 				stemp[chosen_site]            = state_max;
 				payoff_to_update[chosen_site] = final_payoff;
+
+				//printf("%f\n", final_payoff);
 
 				// Q[chosen_site][initial_s_index][new_action_index] = (1.- ALPHA)*Q[chosen_site][initial_s_index][new_action_index]  + ALPHA*(final_payoff + GAMMA*new_maxQ);
 				// This is equivalent to expression above:
@@ -488,14 +491,11 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 			}
 		} // if(s1!=0)
 	}
+
 	for (i = num_empty_sites; i < L2; ++i)
 	{
 		int s1 = empty_matrix[i];
-
-		// update in parallel
-		s[s1]      = stemp[s1];
-		payoff[s1] = payoff_to_update[s1];
-		//printf("%d\n", s[s1]);
+		//printf("%d, %f\n", s[s1], payoff[s1]);
 
 		switch (s[s1])
 		{
@@ -509,6 +509,12 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 
 					} break;
 		}
+
+		// after counting, update in parallel
+		s[s1]      = stemp[s1];
+		payoff[s1] = payoff_to_update[s1];
+
+		//printf("%d, %f\n\n", s[s1], payoff[s1]);
 	}
 
 #ifdef USEGFX
