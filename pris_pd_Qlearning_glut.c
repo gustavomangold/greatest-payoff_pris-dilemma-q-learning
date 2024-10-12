@@ -14,7 +14,7 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 20;
+const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
@@ -23,7 +23,7 @@ const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: 
 const double PROB_C	     = 0.50;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 10000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -408,7 +408,7 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
  ***************************************************************************/
 void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
 {
-	int stemp[L2], array_to_update[L2];//, payoff_to_update[L2];
+	int stemp[L2], payoff_to_update[L2]; // array_to_update[L2],
 	int i,j,chosen_index, chosen_site;
 	int initial_s_index, new_action_index;
 	int initial_s;
@@ -423,18 +423,17 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 	num_dc = 0;
 	num_d  = 0;
 
-	for (i=num_empty_sites; i < L2; ++i)
-		stemp[empty_matrix[i]] = s[empty_matrix[i]];
+	for (i = num_empty_sites; i < L2; ++i){
+		stemp[empty_matrix[i]]            = s[empty_matrix[i]];
+		payoff_to_update[empty_matrix[i]] = payoff[empty_matrix[i]];
+	}
 
-	for (j=0; j < L2; ++j)
+	for (j = 0; j < L2; ++j)
     {
 		chosen_index = j;
 		chosen_site  = empty_matrix[chosen_index];
 
 		initial_s    = s[chosen_site];
-
-		array_to_update[chosen_site]  = initial_s;
-		//payoff_to_update[chosen_site] = payoff[chosen_site];
 
 		if  (initial_s != 0)
 		{
@@ -447,16 +446,18 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 			else // greedy
 				find_maximum_Q_value(chosen_site, &initial_s_index, &new_action, &new_action_index, &maxQ);
 
+			new_action_index = COMPAREindex;
+
 			if (new_action_index != MOVEindex)
 			{
 			    double final_payoff   = pd_payoff(s, initial_s, chosen_site);
 				reward                = final_payoff;
-				payoff[chosen_site]   = final_payoff;
 
-				compare_payoff(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
+				compare_payoff(payoff, s, &state_max, chosen_site, final_payoff);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
 
-				array_to_update[chosen_site] = state_max;
+				stemp[chosen_site]            = state_max;
+				payoff_to_update[chosen_site] = final_payoff;
 
 				// Q[chosen_site][initial_s_index][new_action_index] = (1.- ALPHA)*Q[chosen_site][initial_s_index][new_action_index]  + ALPHA*(final_payoff + GAMMA*new_maxQ);
 				// This is equivalent to expression above:
@@ -475,27 +476,25 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
     				double final_payoff  = pd_payoff(s, initial_s, chosen_site);
     				reward               = final_payoff;
 
-                    array_to_update[chosen_site] = initial_s;
-
     				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
     				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA*new_maxQ
     										- Q[chosen_site][initial_s_index][new_action_index] );
 
-                    //payoff_to_update[chosen_site] = final_payoff;
-                    payoff[chosen_site] = final_payoff;
+                    stemp[chosen_site]            = initial_s;
+                    payoff_to_update[chosen_site] = final_payoff;
 				}
 
 			}
 		} // if(s1!=0)
 	}
-	for (i=num_empty_sites; i < L2; ++i)
+	for (i = num_empty_sites; i < L2; ++i)
 	{
 		int s1 = empty_matrix[i];
 
 		// update in parallel
-		s[s1]      = array_to_update[s1];
-		//payoff[s1] = payoff_to_update[s1];
+		s[s1]      = stemp[s1];
+		payoff[s1] = payoff_to_update[s1];
 		//printf("%d\n", s[s1]);
 
 		switch (s[s1])
@@ -609,7 +608,7 @@ void file_initialization(void)
 
 	//fprintf(freq,"#t  f_c  f_d  f_ac  Qcc  Qcd Qdc Qdd P\n");
 
-	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qcb Qdm Qcm\n");
+	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdm Qcb Qcm\n");
 
 	for (i=0;i<MEASURES;++i)
 	{
