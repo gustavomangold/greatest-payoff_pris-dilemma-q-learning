@@ -36,8 +36,10 @@ const int    TOTALSTEPS  = 10000; //100000				      /*total number of generation
 
 const int  C              =  1;
 const int  D              = -1; //#define D (-1)
-const int  MOVE			  =  0;
-const int  COMPARE        =  2;
+
+const int  COMPARE        =  0;
+const int  MOVE_AS_C	  =  2;
+const int  MOVE_AS_D      =  3;
 
 #define NUM_STATES  	   2
 
@@ -45,12 +47,13 @@ const int Dindex  		 = 0;
 const int Cindex  		 = 1;
 
 const int COMPAREindex   = 0;
-const int MOVEindex      = 1;
+const int MOVE_AS_Cindex = 1;
+const int MOVE_AS_Dindex = 3;
 
 const int STATES[NUM_STATES]   = {D, C};
 
-#define NUM_ACTIONS 	   2
-const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE};
+#define NUM_ACTIONS 	   3
+const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE_AS_C, MOVE_AS_D};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
@@ -96,22 +99,19 @@ gsl_rng * r;
 /***************************************************************************
 *                           Function Declarations                          *
 ***************************************************************************/
-void file_initialization(void);
-void initialization(void);
-void local_dynamics(int *s, double *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
-void count_neighbours(int *s, int ii, int *nc, int *nd);
-void determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
-void initial_state(int *s, int lsize, int initialstate, double probc, double probd);
-
-//double calculate_payoff(int ss, int nc, int nd);
-double pd_payoff(int *s, int ss, int ii);
+void   file_initialization(void);
+void   initialization(void);
+void   local_dynamics(int *s, double *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
+void   count_neighbours(int *s, int ii, int *nc, int *nd);
+void   determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
+void   initial_state(int *s, int lsize, int initialstate, double probc, double probd);
 void   compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, double own_payoff);
-//void dynamics (int *s, float *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
-
+double pd_payoff(int *s, int ss, int ii);
 
 unsigned long empty_site(unsigned long ll, int *nn,
                          unsigned long *empty_matrix, unsigned long *which_empty);
-void update_empty_sites(unsigned long state, unsigned long s2,
+
+void update_empty_sites(unsigned long state, unsigned long neighbour_state,
                         unsigned long *which_empty, unsigned long *empty_matrix);
 int odd(int x);
 
@@ -233,36 +233,36 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
  ***************************************************************************/
  int rand_diffusion(int *state, int *s, unsigned long *empty_matrix,unsigned long *which_empty)
 {
-	int    i, j, k, s2;
+	int    i, j, k, neighbour_state;
 	double sample_random = FRANDOM1;
 
 	if (sample_random < P_DIFFUSION)
     {
 		sample_random = FRANDOM1;
 		i  = (int)((double)(NUM_NEIGH) * sample_random);  // choose random direction
-		s2 = neigh[*state][i];
+		neighbour_state = neigh[*state][i];
 
-		if (s[s2] == 0) // test if chosen direction is empty
+		if (s[neighbour_state] == 0) // test if chosen direction is empty
 		{
-			s[s2] = s[*state]; // Change strategy
+			s[neighbour_state] = s[*state]; // Change strategy
 			s[*state] = 0;
 
-			payoff[s2] = payoff[*state]; // Change payoffs
+			payoff[neighbour_state] = payoff[*state]; // Change payoffs
 			payoff[*state] = 0.0;
 
 			for(j=0; j<NUM_STATES;++j) // Change Q values
 			{
 				for(k=0; k<NUM_ACTIONS;++k)
 				{
-					Q[s2][j][k] = Q[*state][j][k];
+					Q[neighbour_state][j][k] = Q[*state][j][k];
 					Q[*state][j][k] = 0.0;
 				}
 			}
 			/*state=empty_matrix[j]; neighborhood --> no-empty*/
-			/*s2=j;  site --> empty*/
-			update_empty_sites(*state, s2, which_empty, empty_matrix); // emp ---> empty_matrix
+			/*neighbour_state=j;  site --> empty*/
+			update_empty_sites(*state, neighbour_state, which_empty, empty_matrix); // emp ---> empty_matrix
 
-			*state = s2; // Change position
+			*state = neighbour_state; // Change position
 
 			return 1;
 		}
@@ -301,25 +301,6 @@ void count_neighbours(int *s, int ii, int *nc, int *nd)
     }
    return;
  }
-/***************************************************************************
- *                           Payoffs                                       *
- ***************************************************************************/
-/*double calculate_payoff(int SUCKER, int nc, int nd)
-{
-	double pay;
-	switch (SUCKER)
-	{
-		case C: pay = RR*nc + SUCKER*nd;
-				 break;
-		case D: pay = TEMPTATION*nc + PP*nd;
-				 break;
-		default: printf("ERROR: SUCKER = %d numsteps = %ld %d %d\n",SUCKER, numsteps,nc,nd);
-				 exit(1);
-				 break;
-	}
-
-	return pay;
-}*/
 
 /***************************************************************************
  *                    Payoff comparison                                    *
@@ -356,7 +337,7 @@ double pd_payoff(int *s, int ss, int ii)
 
 	switch (ss)
 	{
-		case C: pay = RR * nc;// + SUCKER*nd;
+		case C: pay = RR * nc;// + SUCKER*nd; //both sucker and pp payofs are null
 				 break;
 		case D: pay = TEMPTATION * nc; //+ PP * nd;
 				 break;
@@ -408,7 +389,8 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 /***************************************************************************
  *                       Save initial states                               *
  *                                                                         *
- *      - Creates an array that will be used for comparison later          *
+ *      - Saves an initial statearray that will be used for comparison     *
+ *        later                                                            *
  ***************************************************************************/
 void save_initial_states(int *initial_states){
     int i;
@@ -453,7 +435,7 @@ void local_combat(int *s, double *payoff, int *actions, double *rewards)
 
 			actions[chosen_site] = new_action;
 
-			if (new_action_index != MOVEindex)
+			if ((new_action_index != MOVE_AS_Cindex) && (new_action_index != MOVE_AS_Dindex))
 			{
 			    final_payoff = pd_payoff(s, initial_s, chosen_site);
 				reward       = final_payoff;
@@ -848,16 +830,16 @@ unsigned long empty_site(unsigned long ll, int *nn,
  ***                       Update Empty_Sites Matrix                ***
  ***                       Last modified: 24/04/1999                ***
  *********************************************************************/
-void update_empty_sites(unsigned long state, unsigned long s2,
+void update_empty_sites(unsigned long state, unsigned long neighbour_state,
                         unsigned long *which_empty, unsigned long *empty_matrix)
 {
 	unsigned long sitetmp;
 
-	empty_matrix[which_empty[state]] = s2;
-	empty_matrix[which_empty[s2]] = state;
+	empty_matrix[which_empty[state]] = neighbour_state;
+	empty_matrix[which_empty[neighbour_state]] = state;
 	sitetmp = which_empty[state];
-	which_empty[state] = which_empty[s2];
-	which_empty[s2] = sitetmp;
+	which_empty[state] = which_empty[neighbour_state];
+	which_empty[neighbour_state] = sitetmp;
 
 	return;
 }
