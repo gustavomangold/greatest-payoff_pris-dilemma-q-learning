@@ -41,6 +41,9 @@ const int  COMPARE        =  0;
 const int  MOVE_AS_C	  =  2;
 const int  MOVE_AS_D      =  3;
 
+// adhoc to make it work
+const int COULD_NOT_MOVE  = -1;
+
 #define NUM_STATES  	   2
 
 const int Dindex  		 = 0;
@@ -48,7 +51,7 @@ const int Cindex  		 = 1;
 
 const int COMPAREindex   = 0;
 const int MOVE_AS_Cindex = 1;
-const int MOVE_AS_Dindex = 3;
+const int MOVE_AS_Dindex = 2;
 
 const int STATES[NUM_STATES]   = {D, C};
 
@@ -389,8 +392,7 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 /***************************************************************************
  *                       Save initial states                               *
  *                                                                         *
- *      - Saves an initial statearray that will be used for comparison     *
- *        later                                                            *
+ *      - Saves an initial state array that will be used for comparison    *
  ***************************************************************************/
 void save_initial_states(int *initial_states){
     int i;
@@ -450,16 +452,33 @@ void local_combat(int *s, double *payoff, int *actions, double *rewards)
 
 				if (moved)
 				{
+				    int new_state_moved = (new_action == MOVE_AS_C ? C : D);
        				// payoff changes in new chosen_site
-          	        final_payoff = pd_payoff(s, initial_s, chosen_site);
+          	        final_payoff = pd_payoff(s, new_state_moved, chosen_site);
        				reward       = final_payoff;
 
           	        payoff[chosen_site]  = final_payoff;
                     rewards[chosen_site] = reward; //defining just in case reward is not only payoff
 				}
+				else{
+				    //done in order to, when cant move, not update the state in parallel
+					actions[chosen_site] = COULD_NOT_MOVE;
+				}
 			}
 		} // if(state!=0)
 	}
+}
+
+void update_state_and_q_table(int state, int state_updated, int initial_s_index, int new_action_index, double *rewards){
+    int    future_action, future_action_index;
+    double new_maxQ;
+
+    find_maximum_Q_value(state, &state_updated, &future_action, &future_action_index, &new_maxQ);
+
+    Q[state][initial_s_index][new_action_index] +=  ALPHA * (rewards[state] + GAMMA*new_maxQ
+        										- Q[state][initial_s_index][new_action_index]);
+
+    s[state] = state_updated;
 }
 
 /***************************************************************************
@@ -471,10 +490,8 @@ void update_strategies(int *stemp, int *actions, double *rewards)
 {
     int    i, j;
     int    initial_s_index, new_action_index;
-    int    future_action, future_action_index;
     int    new_states[L2];
-    int    state, state_max_payoff;
-    double new_maxQ;
+    int    state_index, state_max_payoff, state_updated;
 
     num_c  = 0;
 	num_cd = 0;
@@ -483,48 +500,56 @@ void update_strategies(int *stemp, int *actions, double *rewards)
 
 	//calculate every new state in parallel, using biggest payoff comparison
 	for (j = num_empty_sites; j < L2; ++j){
-	    state = empty_matrix[j];
+	    state_index = empty_matrix[j];
 
-		compare_payoff(payoff, s, &state_max_payoff, state, payoff[state]);
+		compare_payoff(payoff, s, &state_max_payoff, state_index, payoff[state_index]);
 
-		new_states[state] = state_max_payoff;
+		new_states[state_index] = state_max_payoff;
 	}
 
 	// update states and q-tables
     for (i = num_empty_sites; i < L2; ++i)
     	{
-    		state = empty_matrix[i];
-    		//printf("%d, %f\n", s[state], payoff[state]);
+    		state_index = empty_matrix[i];
 
-    		switch (s[state])
+    		// update in parallel; also update q-table
+    		initial_s_index  = (stemp[state_index] == C ? Cindex : Dindex);
+            state_updated    = s[state_index];
+            new_action_index = 0;
+
+            switch (actions[state_index]){
+                case COULD_NOT_MOVE:
+                    break;
+                case COMPARE:
+                    new_action_index = COMPAREindex;
+                    state_updated    = new_states[state_index];
+                    update_state_and_q_table(state_index, state_updated, initial_s_index, new_action_index, rewards);
+                    break;
+                case MOVE_AS_C:
+                    new_action_index = MOVE_AS_Cindex;
+                    state_updated    = C;
+                    update_state_and_q_table(state_index, state_updated, initial_s_index, new_action_index, rewards);
+                    break;
+                case
+                    MOVE_AS_D:
+                    new_action_index = MOVE_AS_Dindex;
+                    state_updated    = D;
+                    update_state_and_q_table(state_index, state_updated, initial_s_index, new_action_index, rewards);
+                break;
+            }
+
+    		switch (s[state_index])
     		{
     			case C: {
     						++num_c;
-    						if  (stemp[state] == D) ++num_dc;
+    						if  (stemp[state_index] == D) ++num_dc;
     					 }	break;
     			case D: {
     						++num_d;
-    						if  (stemp[state] == C) ++num_cd;
+    						if  (stemp[state_index] == C) ++num_cd;
 
     					} break;
     		}
-
-    		// after counting, update in parallel; also update q-table
-    		initial_s_index  = (stemp[state] == C ? Cindex : Dindex);
-    		new_action_index = actions[state];
-
-            state_max_payoff = new_states[state];
-
-    		find_maximum_Q_value(state, &state_max_payoff, &future_action, &future_action_index, &new_maxQ);
-
-    		Q[state][initial_s_index][new_action_index] +=  ALPHA * (rewards[state] + GAMMA*new_maxQ
-          										- Q[state][initial_s_index][new_action_index]);
-
-    		s[state] = state_max_payoff;
-
-    		//payoff[state] = payoff_to_update[state];
-
-    		//printf("%d, %f\n\n", s[state], payoff[state]);
     	}
 }
 /***************************************************************************
@@ -601,7 +626,8 @@ void file_initialization(void)
                               P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
 
-	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
+	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D");//- V%s\n",VERSION);
+	fprintf(freq,"# Version: Parallel with move as cooperator and defector actions");
 	fprintf(freq,"# Lattice: %d x %d = %d\n",LSIZE,LSIZE,L2);
 	fprintf(freq,"# Random seed: %ld\n",seed);
 	fprintf(freq,"# N_CONF = %d \n",NUM_CONF);
@@ -640,7 +666,7 @@ void file_initialization(void)
 
 	//fprintf(freq,"#t  f_c  f_d  f_ac  Qcc  Qcd Qdc Qdd P\n");
 
-	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdm Qcb Qcm\n");
+	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdmc Qdmd Qcb Qcmc Qcmd\n");
 
 	for (i=0;i<MEASURES;++i)
 	{
