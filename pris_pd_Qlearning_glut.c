@@ -111,7 +111,7 @@ void   compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, d
 
 unsigned long empty_site(unsigned long ll, int *nn,
                          unsigned long *empty_matrix, unsigned long *which_empty);
-void update_empty_sites(unsigned long s1, unsigned long s2,
+void update_empty_sites(unsigned long state, unsigned long s2,
                         unsigned long *which_empty, unsigned long *empty_matrix);
 int odd(int x);
 
@@ -165,7 +165,7 @@ extern void simulation(void)
 				}
 				num_c_ave[i]  += num_c;
 				num_d_ave[i]  += num_d;
-				num_cd_ave[i] += num_cd+num_dc;
+				num_cd_ave[i] += num_cd + num_dc;
 
 				for (k=num_empty_sites; k < L2; ++k)
 				{
@@ -201,7 +201,7 @@ extern void simulation(void)
 				for(m=0; m<NUM_ACTIONS; ++m)
 					Q_ave[i][l][m] /= NUM_CONF;
 
-			fprintf(freq,"%ld %.6f %.6f %.6f ",t[i],num_c_ave[i],num_d_ave[i],num_cd_ave[i]);
+			fprintf(freq,"%ld %.6f %.6f %.6f ", t[i], num_c_ave[i], num_d_ave[i], num_cd_ave[i]);
 			for(l=0; l<NUM_STATES; ++l)
 				for(m=0; m<NUM_ACTIONS; ++m)
 					fprintf(freq,"%.6f ", Q_ave[i][l][m]);
@@ -231,7 +231,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 /***************************************************************************
  *                          Random Diffusion                               *
  ***************************************************************************/
- int rand_diffusion(int *s1, int *s, unsigned long *empty_matrix,unsigned long *which_empty)
+ int rand_diffusion(int *state, int *s, unsigned long *empty_matrix,unsigned long *which_empty)
 {
 	int    i, j, k, s2;
 	double sample_random = FRANDOM1;
@@ -240,29 +240,29 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
     {
 		sample_random = FRANDOM1;
 		i  = (int)((double)(NUM_NEIGH) * sample_random);  // choose random direction
-		s2 = neigh[*s1][i];
+		s2 = neigh[*state][i];
 
 		if (s[s2] == 0) // test if chosen direction is empty
 		{
-			s[s2] = s[*s1]; // Change strategy
-			s[*s1] = 0;
+			s[s2] = s[*state]; // Change strategy
+			s[*state] = 0;
 
-			payoff[s2] = payoff[*s1]; // Change payoffs
-			payoff[*s1] = 0.0;
+			payoff[s2] = payoff[*state]; // Change payoffs
+			payoff[*state] = 0.0;
 
 			for(j=0; j<NUM_STATES;++j) // Change Q values
 			{
 				for(k=0; k<NUM_ACTIONS;++k)
 				{
-					Q[s2][j][k] = Q[*s1][j][k];
-					Q[*s1][j][k] = 0.0;
+					Q[s2][j][k] = Q[*state][j][k];
+					Q[*state][j][k] = 0.0;
 				}
 			}
-			/*s1=empty_matrix[j]; neighborhood --> no-empty*/
+			/*state=empty_matrix[j]; neighborhood --> no-empty*/
 			/*s2=j;  site --> empty*/
-			update_empty_sites(*s1, s2, which_empty, empty_matrix); // emp ---> empty_matrix
+			update_empty_sites(*state, s2, which_empty, empty_matrix); // emp ---> empty_matrix
 
-			*s1 = s2; // Change position
+			*state = s2; // Change position
 
 			return 1;
 		}
@@ -405,6 +405,24 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 	return;
 }
 
+/***************************************************************************
+ *                       Save initial states                               *
+ *                                                                         *
+ *      - Creates an array that will be used for comparison later          *
+ ***************************************************************************/
+void save_initial_states(int *initial_states){
+    int i;
+
+    for (i = num_empty_sites; i < L2; ++i){
+		initial_states[empty_matrix[i]] = s[empty_matrix[i]];
+	}
+}
+
+/***************************************************************************
+ *                          Local combat                                   *
+ *                                                                         *
+ *      - Makes all players combat with one another, accumulating payoffs  *
+ ***************************************************************************/
 void local_combat(int *s, double *payoff, int *actions, double *rewards)
 {
     int j, chosen_site;
@@ -458,73 +476,90 @@ void local_combat(int *s, double *payoff, int *actions, double *rewards)
                     rewards[chosen_site] = reward; //defining just in case reward is not only payoff
 				}
 			}
-		} // if(s1!=0)
+		} // if(state!=0)
 	}
 }
 
+/***************************************************************************
+ *                       Update strategies                                 *
+ *                                                                         *
+ *      - Compares payoffs and updates the strategies in parallel          *
+ ***************************************************************************/
+void update_strategies(int *stemp, int *actions, double *rewards)
+{
+    int    i, j;
+    int    initial_s_index, new_action_index;
+    int    future_action, future_action_index;
+    int    new_states[L2];
+    int    state, state_max_payoff;
+    double new_maxQ;
+
+    num_c  = 0;
+	num_cd = 0;
+	num_dc = 0;
+	num_d  = 0;
+
+	//calculate every new state in parallel, using biggest payoff comparison
+	for (j = num_empty_sites; j < L2; ++j){
+	    state = empty_matrix[j];
+
+		compare_payoff(payoff, s, &state_max_payoff, state, payoff[state]);
+
+		new_states[state] = state_max_payoff;
+	}
+
+	// update states and q-tables
+    for (i = num_empty_sites; i < L2; ++i)
+    	{
+    		state = empty_matrix[i];
+    		//printf("%d, %f\n", s[state], payoff[state]);
+
+    		switch (s[state])
+    		{
+    			case C: {
+    						++num_c;
+    						if  (stemp[state] == D) ++num_dc;
+    					 }	break;
+    			case D: {
+    						++num_d;
+    						if  (stemp[state] == C) ++num_cd;
+
+    					} break;
+    		}
+
+    		// after counting, update in parallel; also update q-table
+    		initial_s_index  = (stemp[state] == C ? Cindex : Dindex);
+    		new_action_index = actions[state];
+
+            state_max_payoff = new_states[state];
+
+    		find_maximum_Q_value(state, &state_max_payoff, &future_action, &future_action_index, &new_maxQ);
+
+    		Q[state][initial_s_index][new_action_index] +=  ALPHA * (rewards[state] + GAMMA*new_maxQ
+          										- Q[state][initial_s_index][new_action_index]);
+
+    		s[state] = state_max_payoff;
+
+    		//payoff[state] = payoff_to_update[state];
+
+    		//printf("%d, %f\n\n", s[state], payoff[state]);
+    	}
+}
 /***************************************************************************
  *                           Local Dynamics                                *
  ***************************************************************************/
 void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
 {
-	int stemp[L2], actions[L2]; // array_to_update[L2],
-	int i;
-	int initial_s_index, new_action_index;
-	int future_action, future_action_index;
+	int initial_states[L2], actions[L2]; // array_to_update[L2],
 
-	double new_maxQ;
 	double rewards[L2];
 	//double payoff_to_update[L2];
 
-
-	num_c  = 0;
-	num_cd = 0;
-	num_dc = 0;
-	num_d  = 0;
-
-	for (i = num_empty_sites; i < L2; ++i){
-		stemp[empty_matrix[i]] = s[empty_matrix[i]];
-	}
+	save_initial_states(initial_states);
 
 	local_combat(s, payoff, actions, rewards);
 
-	//transformar isso numa funçao tbm
-	for (i = num_empty_sites; i < L2; ++i)
-	{
-		int s1 = empty_matrix[i];
-		int state_max_payoff;
-		//printf("%d, %f\n", s[s1], payoff[s1]);
-
-		switch (s[s1])
-		{
-			case C: {
-						++num_c;
-						if  (stemp[s1] == D) ++num_dc;
-					 }	break;
-			case D: {
-						++num_d;
-						if  (stemp[s1] == C) ++num_cd;
-
-					} break;
-		}
-
-		// after counting, update in parallel; also update q-table
-		initial_s_index  = (s[s1] == C ? Cindex : Dindex);
-		new_action_index = actions[s1];
-
-		compare_payoff(payoff, s, &state_max_payoff, s1, payoff[s1]);
-
-		find_maximum_Q_value(s1, &state_max_payoff, &future_action, &future_action_index, &new_maxQ);
-
-		Q[s1][initial_s_index][new_action_index] +=  ALPHA * (rewards[s1] + GAMMA*new_maxQ
-       										- Q[s1][initial_s_index][new_action_index]);
-
-		s[s1] = state_max_payoff;
-
-		//payoff[s1] = payoff_to_update[s1];
-
-		//printf("%d, %f\n\n", s[s1], payoff[s1]);
-	}
+	update_strategies(initial_states, actions, rewards);
 
 #ifdef USEGFX
 	view2d(LSIZE, s, numsteps, TOTALSTEPS, t, num_c, num_d, NUM_DEFECTS);
@@ -813,15 +848,15 @@ unsigned long empty_site(unsigned long ll, int *nn,
  ***                       Update Empty_Sites Matrix                ***
  ***                       Last modified: 24/04/1999                ***
  *********************************************************************/
-void update_empty_sites(unsigned long s1, unsigned long s2,
+void update_empty_sites(unsigned long state, unsigned long s2,
                         unsigned long *which_empty, unsigned long *empty_matrix)
 {
 	unsigned long sitetmp;
 
-	empty_matrix[which_empty[s1]] = s2;
-	empty_matrix[which_empty[s2]] = s1;
-	sitetmp = which_empty[s1];
-	which_empty[s1] = which_empty[s2];
+	empty_matrix[which_empty[state]] = s2;
+	empty_matrix[which_empty[s2]] = state;
+	sitetmp = which_empty[state];
+	which_empty[state] = which_empty[s2];
 	which_empty[s2] = sitetmp;
 
 	return;
