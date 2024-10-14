@@ -404,41 +404,27 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 
 	return;
 }
-/***************************************************************************
- *                           Local Dynamics                                *
- ***************************************************************************/
-void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
+
+void local_combat(int *s, double *payoff, int *actions, double *rewards)
 {
-	int stemp[L2]; // array_to_update[L2],
-	int i, j, chosen_site;
+    int j, chosen_site;
 	int initial_s_index, new_action_index;
 	int initial_s;
+	int new_action;
 
-	double maxQ, new_maxQ;
-	double reward;
-	double payoff_to_update[L2];
-	int    state_max;
-	int    new_action, future_action, future_action_index;
+	double maxQ;
+	double final_payoff, reward;
+	//double payoff_to_update[L2];
 
-	num_c  = 0;
-	num_cd = 0;
-	num_dc = 0;
-	num_d  = 0;
-
-	for (i = num_empty_sites; i < L2; ++i){
-		stemp[empty_matrix[i]]            = s[empty_matrix[i]];
-		payoff_to_update[empty_matrix[i]] = payoff[empty_matrix[i]];
-	}
-
-	for (j = 0; j < L2; ++j)
-    {
+    for (j = 0; j < L2; ++j)
+       {
 		chosen_site  = empty_matrix[j];
 
 		initial_s    = s[chosen_site];
 
 		if  (initial_s != 0)
 		{
-			initial_s_index = (initial_s == C ? Cindex : Dindex);
+		    initial_s_index  = (initial_s == C ? Cindex : Dindex);
 
 			//double initial_payoff  = pd_payoff(s, initial_s, chosen_site);
 
@@ -447,26 +433,15 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 			else // greedy
 				find_maximum_Q_value(chosen_site, &initial_s_index, &new_action, &new_action_index, &maxQ);
 
-			new_action_index = COMPAREindex;
+			actions[chosen_site] = new_action;
 
 			if (new_action_index != MOVEindex)
 			{
-			    double final_payoff   = pd_payoff(s, initial_s, chosen_site);
-				reward                = final_payoff;
+			    final_payoff = pd_payoff(s, initial_s, chosen_site);
+				reward       = final_payoff;
 
-				compare_payoff(payoff, s, &state_max, chosen_site, final_payoff);
-				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
-
-				stemp[chosen_site]            = state_max;
-				payoff_to_update[chosen_site] = final_payoff;
-
-				//printf("%f\n", final_payoff);
-
-				// Q[chosen_site][initial_s_index][new_action_index] = (1.- ALPHA)*Q[chosen_site][initial_s_index][new_action_index]  + ALPHA*(final_payoff + GAMMA*new_maxQ);
-				// This is equivalent to expression above:
-				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA*(reward + GAMMA*new_maxQ
-										- Q[chosen_site][initial_s_index][new_action_index]);
-
+				payoff[chosen_site]  = final_payoff;
+				rewards[chosen_site] = reward; //defining just in case reward is not only payoff
 			}
 			else // try to move
 			{
@@ -475,26 +450,49 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 
 				if (moved)
 				{
-    				// payoff changes in new site
-    				double final_payoff  = pd_payoff(s, initial_s, chosen_site);
-    				reward               = final_payoff;
+       				// payoff changes in new chosen_site
+          	        final_payoff = pd_payoff(s, initial_s, chosen_site);
+       				reward       = final_payoff;
 
-    				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
-
-    				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA*new_maxQ
-    										- Q[chosen_site][initial_s_index][new_action_index] );
-
-                    stemp[chosen_site]            = initial_s;
-                    payoff_to_update[chosen_site] = final_payoff;
+          	        payoff[chosen_site]  = final_payoff;
+                    rewards[chosen_site] = reward; //defining just in case reward is not only payoff
 				}
-
 			}
 		} // if(s1!=0)
 	}
+}
 
+/***************************************************************************
+ *                           Local Dynamics                                *
+ ***************************************************************************/
+void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
+{
+	int stemp[L2], actions[L2]; // array_to_update[L2],
+	int i;
+	int initial_s_index, new_action_index;
+	int future_action, future_action_index;
+
+	double new_maxQ;
+	double rewards[L2];
+	//double payoff_to_update[L2];
+
+
+	num_c  = 0;
+	num_cd = 0;
+	num_dc = 0;
+	num_d  = 0;
+
+	for (i = num_empty_sites; i < L2; ++i){
+		stemp[empty_matrix[i]] = s[empty_matrix[i]];
+	}
+
+	local_combat(s, payoff, actions, rewards);
+
+	//transformar isso numa funçao tbm
 	for (i = num_empty_sites; i < L2; ++i)
 	{
 		int s1 = empty_matrix[i];
+		int state_max_payoff;
 		//printf("%d, %f\n", s[s1], payoff[s1]);
 
 		switch (s[s1])
@@ -510,9 +508,20 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 					} break;
 		}
 
-		// after counting, update in parallel
-		s[s1]      = stemp[s1];
-		payoff[s1] = payoff_to_update[s1];
+		// after counting, update in parallel; also update q-table
+		initial_s_index  = (s[s1] == C ? Cindex : Dindex);
+		new_action_index = actions[s1];
+
+		compare_payoff(payoff, s, &state_max_payoff, s1, payoff[s1]);
+
+		find_maximum_Q_value(s1, &state_max_payoff, &future_action, &future_action_index, &new_maxQ);
+
+		Q[s1][initial_s_index][new_action_index] +=  ALPHA * (rewards[s1] + GAMMA*new_maxQ
+       										- Q[s1][initial_s_index][new_action_index]);
+
+		s[s1] = state_max_payoff;
+
+		//payoff[s1] = payoff_to_update[s1];
 
 		//printf("%d, %f\n\n", s[s1], payoff[s1]);
 	}
