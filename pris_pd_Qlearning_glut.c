@@ -451,7 +451,7 @@ void local_combat(int *s, double *payoff, int *actions, double *rewards)
 			else // greedy
 				find_maximum_Q_value(chosen_site, &initial_s_index, &new_action, &new_action_index, &maxQ);
 
-			actions[chosen_site] = new_action_index;
+			actions[chosen_site] = new_action;
 
 			if (new_action_index != MOVEindex)
 			{
@@ -491,7 +491,7 @@ void update_strategies(int *stemp, int *actions, double *rewards)
     int    initial_s_index, new_action_index;
     int    future_action, future_action_index;
     int    new_states[L2];
-    int    state, state_max_payoff;
+    int    state, state_max_payoff, state_max_payoff_update;
     double new_maxQ;
 
     num_c  = 0;
@@ -529,19 +529,20 @@ void update_strategies(int *stemp, int *actions, double *rewards)
 
     		// after counting, update in parallel; also update q-table
     		initial_s_index  = (stemp[state] == C ? Cindex : Dindex);
-    		new_action_index = actions[state];
+    		new_action_index = (actions[state] == MOVE ? MOVEindex : COMPAREindex);
 
-            // only update state if action is to compare
-            // if moves, don't update it
+            state_max_payoff_update = s[state];
+
+            //only update if decision is to compare
             if (new_action_index == COMPAREindex){
-                state_max_payoff = new_states[state];
-                s[state]         = state_max_payoff;
+                state_max_payoff_update = new_states[state];
+                s[state] = state_max_payoff_update;
             }
 
-            find_maximum_Q_value(state, &state_max_payoff, &future_action, &future_action_index, &new_maxQ);
+    		find_maximum_Q_value(state, &state_max_payoff_update, &future_action, &future_action_index, &new_maxQ);
 
-      		Q[state][initial_s_index][new_action_index] +=  ALPHA * (rewards[state] + GAMMA*new_maxQ
-              										- Q[state][initial_s_index][new_action_index]);
+    		Q[state][initial_s_index][new_action_index] +=  ALPHA * (rewards[state] + GAMMA*new_maxQ
+          										- Q[state][initial_s_index][new_action_index]);
 
     		//payoff[state] = payoff_to_update[state];
 
