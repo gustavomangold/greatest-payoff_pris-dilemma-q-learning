@@ -37,12 +37,12 @@ const int    TOTALSTEPS  = 10000; //100000				      /*total number of generation
 const int  C              =  1;
 const int  D              = -1; //#define D (-1)
 
-const int  COMPARE        =  0;
-const int  MOVE_AS_C	  =  2;
-const int  MOVE_AS_D      =  3;
+const int  COMPARE        =  2;
+const int  MOVE_AS_C	  =  3;
+const int  MOVE_AS_D      =  4;
 
 // adhoc to make it work
-const int COULD_NOT_MOVE  = -1;
+const int COULD_NOT_MOVE  = 0;
 
 #define NUM_STATES  	   2
 
@@ -67,8 +67,8 @@ double        EPSILON	  = 0.02; //1.0;
 const double  EPSILON_MIN = 0.02; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.02;
-const double  ALPHA       = 0.8; //0.75;
-const double  GAMMA       = 0.8; //0.75;
+const double  ALPHA       = 0.7; //0.75;
+const double  GAMMA       = 0.2; //0.75;
 
 /***************************************************************************
 *                      Variable Declarations                               *
@@ -318,7 +318,7 @@ void compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, dou
     for (int k = 0; k < NUM_NEIGH; ++k)
 	{
 	    //printf("%d, %f, %f, %ld\n", s[neigh[chosen_site][k]], payoff[neigh[chosen_site][k]],
-				 //max_payoff, neigh[chosen_site][k]);
+		//		 max_payoff, neigh[chosen_site][k]);
 		if ((s[neigh[chosen_site][k]] != 0) && (payoff[neigh[chosen_site][k]] > max_payoff)){
 			*state_max = s[neigh[chosen_site][k]];
 			max_payoff = payoff[neigh[chosen_site][k]];
@@ -469,16 +469,16 @@ void local_combat(int *s, double *payoff, int *actions, double *rewards)
 	}
 }
 
-void update_state_and_q_table(int state, int state_updated, int initial_s_index, int new_action_index, double *rewards){
+void update_state_and_q_table(int site, int state_updated, int initial_s_index, int new_action_index, double *rewards){
     int    future_action, future_action_index;
     double new_maxQ;
 
-    find_maximum_Q_value(state, &state_updated, &future_action, &future_action_index, &new_maxQ);
+    find_maximum_Q_value(site, &state_updated, &future_action, &future_action_index, &new_maxQ);
 
-    Q[state][initial_s_index][new_action_index] +=  ALPHA * (rewards[state] + GAMMA*new_maxQ
-        										- Q[state][initial_s_index][new_action_index]);
+    Q[site][initial_s_index][new_action_index] +=  ALPHA * (rewards[site] + GAMMA*new_maxQ
+        										- Q[site][initial_s_index][new_action_index]);
 
-    s[state] = state_updated;
+    s[site] = state_updated;
 }
 
 /***************************************************************************
@@ -491,7 +491,7 @@ void update_strategies(int *stemp, int *actions, double *rewards)
     int    i, j;
     int    initial_s_index, new_action_index;
     int    new_states[L2];
-    int    state_index, state_max_payoff, state_updated;
+    int    site, state_max_payoff, state_updated;
 
     num_c  = 0;
 	num_cd = 0;
@@ -500,53 +500,52 @@ void update_strategies(int *stemp, int *actions, double *rewards)
 
 	//calculate every new state in parallel, using biggest payoff comparison
 	for (j = num_empty_sites; j < L2; ++j){
-	    state_index = empty_matrix[j];
+	    site = empty_matrix[j];
 
-		compare_payoff(payoff, s, &state_max_payoff, state_index, payoff[state_index]);
+		compare_payoff(payoff, s, &state_max_payoff, site, payoff[site]);
 
-		new_states[state_index] = state_max_payoff;
+		new_states[site] = state_max_payoff;
 	}
 
 	// update states and q-tables
     for (i = num_empty_sites; i < L2; ++i)
     	{
-    		state_index = empty_matrix[i];
+    		site = empty_matrix[i];
 
     		// update in parallel; also update q-table
-    		initial_s_index  = (stemp[state_index] == C ? Cindex : Dindex);
-            state_updated    = s[state_index];
+    		initial_s_index  = (stemp[site] == C ? Cindex : Dindex);
+            state_updated    = s[site];
             new_action_index = 0;
 
-            switch (actions[state_index]){
+            switch (actions[site]){
                 case COULD_NOT_MOVE:
                     break;
                 case COMPARE:
                     new_action_index = COMPAREindex;
-                    state_updated    = new_states[state_index];
-                    update_state_and_q_table(state_index, state_updated, initial_s_index, new_action_index, rewards);
+                    state_updated    = new_states[site];
+                    update_state_and_q_table(site, state_updated, initial_s_index, new_action_index, rewards);
                     break;
                 case MOVE_AS_C:
                     new_action_index = MOVE_AS_Cindex;
                     state_updated    = C;
-                    update_state_and_q_table(state_index, state_updated, initial_s_index, new_action_index, rewards);
+                    update_state_and_q_table(site, state_updated, initial_s_index, new_action_index, rewards);
                     break;
-                case
-                    MOVE_AS_D:
+                case MOVE_AS_D:
                     new_action_index = MOVE_AS_Dindex;
                     state_updated    = D;
-                    update_state_and_q_table(state_index, state_updated, initial_s_index, new_action_index, rewards);
-                break;
+                    update_state_and_q_table(site, state_updated, initial_s_index, new_action_index, rewards);
+                    break;
             }
 
-    		switch (s[state_index])
+    		switch (s[site])
     		{
     			case C: {
     						++num_c;
-    						if  (stemp[state_index] == D) ++num_dc;
+    						if  (stemp[site] == D) ++num_dc;
     					 }	break;
     			case D: {
     						++num_d;
-    						if  (stemp[state_index] == C) ++num_cd;
+    						if  (stemp[site] == C) ++num_cd;
 
     					} break;
     		}

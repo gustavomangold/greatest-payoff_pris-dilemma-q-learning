@@ -32,18 +32,22 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     return
 
 def plot_separate_column(colnames, color):
+    color = itertools.cycle(("#0E56FD", "#6135ca", "red"))
     for column in colnames:
-        if column[2] == 'b':
-            plt.plot(data[['t']].to_numpy(), data[[column]].to_numpy(),
-                color = next(color), label = r'$Q_{{{}}}$'.format(column[1:]))
+        if column[0] == 'Q':
+            if column[1] == 'c':
+                plt.plot(data[['t']].to_numpy(), data[[column]].to_numpy(),
+                    color = next(color), label = r'$Q_{{{}}}$'.format(column[1:]))
     plt.legend(loc = 'best')
     plt.savefig(filename + 'q-table-for-d.png', dpi = 400, bbox_inches='tight')
     plt.close()
 
+    color = itertools.cycle(("#0E56FD", "#6135ca", "red"))
     for column in colnames:
-        if column[2] == 'm':
-            plt.plot(data[['t']].to_numpy(), data[[column]].to_numpy(),
-                color = next(color), label = r'$Q_{{{}}}$'.format(column[1:]))
+        if column[0] == 'Q':
+            if column[1] == 'd':
+                plt.plot(data[['t']].to_numpy(), data[[column]].to_numpy(),
+                    color = next(color), label = r'$Q_{{{}}}$'.format(column[1:]))
     plt.legend()
     plt.savefig(filename + 'q-table-for-c.png', dpi = 400, bbox_inches='tight')
     plt.close()
@@ -65,11 +69,11 @@ def plot_data_values(filename, data, colnames, color, identifier: str):
 
 path = './data/parallel/'
 
-color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
+color = itertools.cycle(("#0E56FD", "#6135ca", "red"))
 
 cooperation_dict = {}
 variance_dict    = {}
-colnames = ['t',  'f_c',  'f_d', 'r_m', 'Qdb',  'Qcb', 'Qdm', 'Qcm']
+colnames = ['t',  'f_c',  'f_d', 'r_m', 'Qdb', 'Qdmc', 'Qdmd', 'Qcb', 'Qcmc', 'Qcmd']
 
 labels_to_plot = []
 x_axis_to_plot = []
@@ -103,9 +107,8 @@ for filename in glob.glob(path + 'T*.dat'):
         mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
         var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
-        '''if np.random.rand() < 0.1:
-            plot_data_values(filename, data, colnames, color, 'q-table')
-            plot_data_values(filename, data, colnames, color, 'cooperation')'''
+        #plot_data_values(filename, data, colnames, color, 'q-table')
+        #plot_data_values(filename, data, colnames, color, 'cooperation')
 
         if key in (cooperation_dict.keys()):
             cooperation_dict[key].append([x_variable, float(mean_coop)])
@@ -119,10 +122,11 @@ for filename in glob.glob(path + 'T*.dat'):
         cooperation_plot.append(mean_coop)
 
         index += 1
-    except:
+    except Exception as exc:
         print('Unavailable data for' + filename)
+        print(exc)
 
-#plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
+plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
 plt.style.use('seaborn-v0_8-ticks')
 
