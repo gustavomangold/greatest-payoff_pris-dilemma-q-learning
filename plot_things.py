@@ -103,9 +103,11 @@ for filename in glob.glob(path + 'T*.dat'):
         mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
         var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
+        plot_data_values(filename, data, colnames, color, 'cooperation')
+
         '''if np.random.rand() < 0.1:
             plot_data_values(filename, data, colnames, color, 'q-table')
-            plot_data_values(filename, data, colnames, color, 'cooperation')'''
+            '''
 
         if key in (cooperation_dict.keys()):
             cooperation_dict[key].append([x_variable, float(mean_coop)])
@@ -130,11 +132,12 @@ marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
-    color_both_plots = next(color)
-    plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
-        label = r'$p_d = $' + str(key), color = color_both_plots)
-    #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
-    index += 1
+    if (key in [0.01, 0.05, 1]):
+        color_both_plots = next(color)
+        plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
+            label = r'$p_d = $' + str(key), color = color_both_plots)
+        #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
+        index += 1
 
 plt.title('')
 plt.ylim(0., 1.)

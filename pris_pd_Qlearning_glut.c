@@ -23,7 +23,7 @@ const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: 
 const double PROB_C	     = 0.50;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 10000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 50000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -58,11 +58,11 @@ double     P_DIFFUSION;
 
 /****** Q-Learning **********/
 double        EPSILON	  = 0.02; //1.0;
-const double  EPSILON_MIN = 0.02; //0.1;
+const double  EPSILON_MIN = 0.1; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.02;
-const double  ALPHA       = 0.8; //0.75;
-const double  GAMMA       = 0.8; //0.75;
+const double  ALPHA       = 0.75; //0.75;
+const double  GAMMA       = 0.15; //0.75;
 
 /***************************************************************************
 *                      Variable Declarations                               *
@@ -535,8 +535,7 @@ void update_strategies(int *stemp, int *actions, double *rewards)
 
             //only update if decision is to compare
             if (new_action_index == COMPAREindex){
-                state_max_payoff_update = new_states[state];
-                s[state] = state_max_payoff_update;
+                s[state] = new_states[state];
             }
 
     		find_maximum_Q_value(state, &state_max_payoff_update, &future_action, &future_action_index, &new_maxQ);
