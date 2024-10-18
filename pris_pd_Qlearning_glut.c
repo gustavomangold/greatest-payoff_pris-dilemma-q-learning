@@ -477,9 +477,9 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
     				double final_payoff  = pd_payoff(s, initial_s, chosen_site);
     				reward               = final_payoff;
 
-                    update_fermi(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
+                    //update_fermi(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
 
-    				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
+    				//find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
 
                     s[chosen_site] = state_max;
 

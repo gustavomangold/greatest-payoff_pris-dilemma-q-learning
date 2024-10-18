@@ -83,21 +83,6 @@ for filename in glob.glob(path + 'T*.dat'):
 
     data['mean_coop'] = data['f_c'] / (data['f_d'] + data['f_c'])
 
-    """#plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')
-    #plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
-
-    if 0.8 > key > 0.5:
-        plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
-        plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')
-"""
-
-    """reward_series = data['r_m']
-    plt.plot(np.array(data['t']), np.array(reward_series), label = key, color = next(color))
-    plt.xlabel('t')
-    plt.ylabel(r'$\bar{R}$')
-    plt.savefig('reward-time_series' + str(key) + '.png', dpi = 400)"""
-    """plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
-    plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')"""
     try:
         x_variable  = float(filename.split('T')[1][:4])
         mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
@@ -161,17 +146,3 @@ plt.xlabel(r'$b$')
 plt.ylabel(r'$\sigma ^2$')
 #plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5)
 plt.savefig('variance_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
-
-"""index = 0
-for filename in glob.glob(path + 'T*.dat'):
-    data = pd.read_csv(filename, comment = '#', delimiter = ' ', names = colnames_dynamic, index_col = False)
-    plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
-    index += 1"""
-
-'''
-#print(temptation, mean_cooperation)
-plt.plot(*zip(*cooperation_per_episode), label = str(temptation), color = color[index % len(color)])
-index += 1
-
-plt.savefig('cooperation-time_series.png', dpi = 400, bbox_inches='tight')
-plt.clf()'''
