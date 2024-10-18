@@ -334,10 +334,10 @@ void update_fermi(float *payoff, int *s, int *new_state, int chosen_site, float 
 {
     int neigh_site = (int) (NUM_NEIGH * FRANDOM1);
 
-    printf("%f \n", calculate_fermi_probability(payoff[chosen_site], payoff[neigh[chosen_site][neigh_site]]));
+    //printf("%f \n", calculate_fermi_probability(payoff[chosen_site], payoff[neigh[chosen_site][neigh_site]]));
 
-    if ((s[neigh[chosen_site][neigh_site]] != 0) && (FRANDOM1 > calculate_fermi_probability(payoff[chosen_site],
-        payoff[neigh[chosen_site][neigh_site]]))){
+    if ((s[neigh[chosen_site][neigh_site]] != 0) && (calculate_fermi_probability(payoff[chosen_site],
+        payoff[neigh[chosen_site][neigh_site]]) > FRANDOM1)){
         *new_state = s[neigh[chosen_site][neigh_site]];
         return;
     }
@@ -452,11 +452,11 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 				update_fermi(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
 
+				double final_payoff   = pd_payoff(s, initial_s, chosen_site);
+
+				reward = final_payoff;
+
 				s[chosen_site] = state_max;
-
-				double final_payoff   = pd_payoff(s, state_max, chosen_site);
-
-				reward         = final_payoff;
 
 				// Q[chosen_site][initial_s_index][new_action_index] = (1.- ALPHA)*Q[chosen_site][initial_s_index][new_action_index]  + ALPHA*(final_payoff + GAMMA*new_maxQ);
 				// This is equivalent to expression above:
@@ -477,7 +477,11 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
     				double final_payoff  = pd_payoff(s, initial_s, chosen_site);
     				reward               = final_payoff;
 
-    				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
+                    update_fermi(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
+
+    				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
+
+                    s[chosen_site] = state_max;
 
     				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA*new_maxQ
     										- Q[chosen_site][initial_s_index][new_action_index] );
@@ -559,12 +563,13 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/fermi/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                               P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
+	fprintf(freq,"# Fermi update version ");//- V%s\n",VERSION);
 	fprintf(freq,"# Lattice: %d x %d = %d\n",LSIZE,LSIZE,L2);
 	fprintf(freq,"# Random seed: %ld\n",seed);
 	fprintf(freq,"# N_CONF = %d \n",NUM_CONF);
