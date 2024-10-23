@@ -18,7 +18,7 @@ const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
-const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: exact 5
+const int INITIALSTATE   = 6;               		  /*1:random 2:one D 3:D-block 4: exact 5
 													5: 2C's */
 const double PROB_C	     = 0.50;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
@@ -656,6 +656,7 @@ void file_initialization(void)
 			break;
 		case 5 : fprintf(freq,"2 C's\n");
 			break;
+		case 6 : fprintf(freq,"Stripes\n");
     }
 	fprintf(freq,"# Steps: Total = %5d\n",TOTALSTEPS);
 
@@ -817,6 +818,28 @@ void initial_state(int *s,  int lsize, int initialstate, double probc, double pr
              }
 	    }/**/
       break;
+      case 6 :
+        for (i = 0; i < l2; ++i)
+  		{
+     			*(s+i) = 1;
+  		}
+        vazios = 0;
+        while (vazios < (int) NUM_DEFECTS)
+      	{
+      		i= (int) (FRANDOM1*l2);
+      		if (*(s+i)!=0)
+      			{
+      				*(s+i)=0;
+      				++vazios;
+      			}
+      	}
+      for (i = 0; i < l2; ++i)
+      	{
+      		if (*(s+i)!=0 && i > (l2 / 2))
+      		{
+          		*(s+i) = -1;
+          }
+	}
     }
 return;
 }
