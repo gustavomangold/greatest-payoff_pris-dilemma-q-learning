@@ -20,13 +20,3 @@ do
         done
         wait
 done
-
-for defects in $(seq 500 500 9000)
-do
-        for mobility in .15 .25 .35 .45 .55 .65 .75 .85 .95
-        do
-                echo "1.4 $defects $mobility"
-                ./pris_pd_Qlearning_glut 1.4 $defects $mobility &
-        done
-        wait
-done
