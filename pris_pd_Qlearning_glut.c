@@ -58,10 +58,10 @@ double     P_DIFFUSION;
 
 /****** Q-Learning **********/
 double        EPSILON	  = 0.02; //1.0;
-const double  EPSILON_MIN = 0.02; //0.1;
+const double  EPSILON_MIN = 0.05; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.02;
-const double  ALPHA       = 0.8; //0.75;
+const double  ALPHA       = 0.75; //0.75;
 const double  GAMMA       = 0.8; //0.75;
 
 /***************************************************************************
