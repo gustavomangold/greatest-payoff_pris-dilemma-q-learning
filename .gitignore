@@ -54,3 +54,5 @@ dkms.conf
 #specific files
 /data
 *.png
+*.tar.gz
+pris_pd_Qlearning_glut
