@@ -57,10 +57,10 @@ const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 double     P_DIFFUSION;
 
 /****** Q-Learning **********/
-double        EPSILON	  = 0.02; //1.0;
-const double  EPSILON_MIN = 0.05; //0.1;
+double        EPSILON	  = 1.; //1.0;
+const double  EPSILON_MIN = 0.15; //0.1;
 //const double  EPS         = 1e-5;
-const double  LAMBDA      = 0.02;
+const double  LAMBDA      = 0.0001;
 const double  ALPHA       = 0.75; //0.75;
 const double  GAMMA       = 0.8; //0.75;
 
@@ -142,7 +142,7 @@ extern void simulation(void)
 	int iconf,i,j,k,l,m;
 	static int ICONF=0;
 
-	//double epsilon_test=1.0;
+	double epsilon_test=1.0;
 
    while(ICONF < NUM_CONF) //FOR GLUT
    {
@@ -156,9 +156,9 @@ extern void simulation(void)
 			{
 				while (numsteps <= t[i])
 				{
-					//epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
-					EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
-					//EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
+					//EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					local_dynamics(s, payoff, empty_matrix, which_empty);
 
 					++numsteps;
