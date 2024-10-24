@@ -1,22 +1,38 @@
 #!/bin/bash
 LC_NUMERIC="en_US.UTF-8"
 
-for defects in $(seq 500 500 9000)
+for defects in $(seq 0 500 9000)
 do
-        for mobility in .01 .02 .03 .04 .05 .06 .07 .08 .09 .1
+        for mobility in .01 .03 .05 .07 .1
         do
                 echo "1.4 $defects $mobility"
                 ./pris_pd_Qlearning_glut 1.4 $defects $mobility &
         done
         wait
+	
+	for mobility in .1 .3 .5 .7 1.
+        do
+                echo "1.4 $defects $mobility"
+                ./pris_pd_Qlearning_glut 1.4 $defects $mobility &
+        done
+        wait
+
 done
 
-for defects in $(seq 500 500 9000)
+for defects in $(seq 0 50 500)
 do
-        for mobility in .1 .2 .3 .4 .5 .6 .7 .8 .9 1.
+        for mobility in .01 .03 .05 .07 .1
         do
                 echo "1.4 $defects $mobility"
                 ./pris_pd_Qlearning_glut 1.4 $defects $mobility &
         done
         wait
+	
+	for mobility in .1 .3 .5 .7 1.
+        do
+                echo "1.4 $defects $mobility"
+                ./pris_pd_Qlearning_glut 1.4 $defects $mobility &
+        done
+        wait
+
 done
