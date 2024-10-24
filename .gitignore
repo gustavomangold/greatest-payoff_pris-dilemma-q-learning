@@ -54,3 +54,4 @@ dkms.conf
 #specific files
 /data
 *.png
+*.tar.gz
