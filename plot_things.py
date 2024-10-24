@@ -103,7 +103,7 @@ for filename in glob.glob(path + 'T*.dat'):
         mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
         var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
-        #plot_data_values(filename, data, colnames, color, 'cooperation')
+        plot_data_values(filename, data, colnames, color, 'cooperation')
 
         '''if np.random.rand() < 0.1:
             plot_data_values(filename, data, colnames, color, 'q-table')
@@ -124,7 +124,7 @@ for filename in glob.glob(path + 'T*.dat'):
     except:
         print('Unavailable data for' + filename)
 
-plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
+#plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
 plt.style.use('seaborn-v0_8-ticks')
 
