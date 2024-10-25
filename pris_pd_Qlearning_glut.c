@@ -18,7 +18,7 @@ const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
-const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: exact
+const int INITIALSTATE   = 6;               		  /*1:random 2:one D 3:D-block 4: exact
 													5: 2C's 6: stripes*/
 const double PROB_C	     = 0.50;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
@@ -54,7 +54,8 @@ const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
-double     P_DIFFUSION;
+double P_DIFFUSION;
+int    SNAPSHOT_TEMPORAL_DIFFERENCE;
 
 /****** Q-Learning **********/
 double        EPSILON	  = 1.; //1.0;
@@ -107,7 +108,7 @@ void initial_state(int *s, int lsize, int initialstate, double probc, double pro
 double pd_payoff(int *s, int ss, int ii);
 void   compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, double own_payoff);
 //void dynamics (int *s, float *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
-
+void   save_snapshots(int step, int *s);
 
 unsigned long empty_site(unsigned long ll, int *nn,
                          unsigned long *empty_matrix, unsigned long *which_empty);
@@ -406,6 +407,26 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 }
 
 /***************************************************************************
+ *                             Save snapshots                              *
+ ***************************************************************************/
+void save_snapshots(int step, int *s){
+    char output_snaps_freq[200];
+	int i;
+
+	sprintf(output_snaps_freq, "data/parallel/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+                                 step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
+                                 P_DIFFUSION, NUM_CONF, seed);
+	fconf = fopen(output_snaps_freq, "w");
+
+	for (i = 0; i < (L2-1); ++i){
+	   fprintf(fconf,"%d,", s[i]);
+	}
+	fprintf(fconf,"%d", s[L2-1]);
+	fclose(fconf);
+    return;
+}
+
+/***************************************************************************
  *                       Save initial states                               *
  *                                                                         *
  *      - Creates an array that will be used for comparison later          *
@@ -564,6 +585,12 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 
 	update_strategies(initial_states, actions, rewards);
 
+#ifdef SAVESNAPSHOTS
+    if (numsteps % SNAPSHOT_TEMPORAL_DIFFERENCE == 0){
+        save_snapshots(numsteps, s);
+    }
+#endif
+
 #ifdef USEGFX
 	view2d(LSIZE, s, numsteps, TOTALSTEPS, t, num_c, num_d, NUM_DEFECTS);
 	//syst_return = system("sleep 1");
@@ -577,17 +604,33 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 ***************************************************************************/
 int main(int argc, char **argv)
 {
-   	if (argc != 4)
-   	{
-  		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
-  		exit(1);
-   	}
-   	else
-    {
-  		TEMPTATION  = atof(argv[1]);
-  		NUM_DEFECTS = atof(argv[2]);
-  		P_DIFFUSION = atof(argv[3]);
-   	}
+   	#ifdef SAVESNAPSHOTS
+       	if (argc != 5)
+       	{
+      		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
+      		exit(1);
+       	}
+       	else
+        {
+      		TEMPTATION  = atof(argv[1]);
+      		NUM_DEFECTS = atof(argv[2]);
+      		P_DIFFUSION = atof(argv[3]);
+
+            SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[4]);
+       	}
+    #else
+        if (argc != 4)
+       	{
+      		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
+      		exit(1);
+       	}
+       	else
+        {
+      		TEMPTATION  = atof(argv[1]);
+      		NUM_DEFECTS = atof(argv[2]);
+      		P_DIFFUSION = atof(argv[3]);
+       	}
+    #endif
 
 	seed = set_gsl_rng();	 //Start GSL Random number generator
 
