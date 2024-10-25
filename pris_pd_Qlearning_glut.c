@@ -14,16 +14,16 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 20;
+const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
-const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: exact 5
-													5: 2C's */
-const double PROB_C	     = 0.50;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
+const int INITIALSTATE   = 6;               		  /*1:random 2:one D 3:D-block 4: exact
+													5: 2C's  6: Stripes*/
+const double PROB_C	     = 0.1;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 20000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -54,7 +54,8 @@ const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
-double     P_DIFFUSION;
+double P_DIFFUSION;
+int    SNAPSHOT_TEMPORAL_DIFFERENCE;
 
 /****** Q-Learning **********/
 double        EPSILON	  = 1.; //1.0;
@@ -87,7 +88,7 @@ const double	RR     = 1.0;
 
 unsigned long  NUM_DEFECTS;
 
-FILE           *freq,*fconf;
+FILE           *freq, *fconf;
 
 unsigned long int rseed;
 const gsl_rng_type * T;
@@ -107,6 +108,7 @@ void initial_state(int *s, int lsize, int initialstate, double probc, double pro
 double pd_payoff(int *s, int ss, int ii);
 void   compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, double own_payoff);
 //void dynamics (int *s, double *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
+void   save_snapshots(int step, int *s);
 
 
 unsigned long empty_site(unsigned long ll, int *nn,
@@ -403,6 +405,27 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 
 	return;
 }
+
+/***************************************************************************
+ *                             Save snapshots                              *
+ ***************************************************************************/
+void save_snapshots(int step, int *s){
+    char output_snaps_freq[200];
+	int i;
+
+	sprintf(output_snaps_freq, "data/stochastic/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+                                 step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
+                                 P_DIFFUSION, NUM_CONF, seed);
+	fconf = fopen(output_snaps_freq, "w");
+
+	for (i = 0; i < (L2-1); ++i){
+	   fprintf(fconf,"%d,", s[i]);
+	}
+	fprintf(fconf,"%d", s[L2-1]);
+	fclose(fconf);
+    return;
+}
+
 /***************************************************************************
  *                           Local Dynamics                                *
  ***************************************************************************/
@@ -503,6 +526,12 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 		}
 	}
 
+#ifdef SAVESNAPSHOTS
+    if (numsteps % SNAPSHOT_TEMPORAL_DIFFERENCE == 0){
+        save_snapshots(numsteps, s);
+    }
+#endif
+
 #ifdef USEGFX
 	view2d(LSIZE, s, numsteps, TOTALSTEPS, t, num_c, num_d, NUM_DEFECTS);
 	//syst_return = system("sleep 1");
@@ -516,7 +545,22 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 ***************************************************************************/
 int main(int argc, char **argv)
 {
-   	if (argc != 4)
+    #ifdef SAVESNAPSHOTS
+   	if (argc != 5)
+   	{
+  		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
+  		exit(1);
+   	}
+   	else
+    {
+  		TEMPTATION  = atof(argv[1]);
+  		NUM_DEFECTS = atof(argv[2]);
+  		P_DIFFUSION = atof(argv[3]);
+
+        SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[4]);
+   	}
+    #else
+    if (argc != 4)
    	{
   		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
   		exit(1);
@@ -527,6 +571,7 @@ int main(int argc, char **argv)
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
    	}
+    #endif
 
 	seed = set_gsl_rng();	 //Start GSL Random number generator
 
@@ -586,16 +631,18 @@ void file_initialization(void)
 	fprintf(freq,"# Initial configuration: ");
 	switch (INITIALSTATE)
     {
-		case 1 : fprintf(freq,"Random\n");
+		case 1 : fprintf(freq, "Random\n");
 			break;
-		case 2 : fprintf(freq,"One D\n");
+		case 2 : fprintf(freq, "One D\n");
 			break;
-		case 3 : fprintf(freq,"D-Block\n");
+		case 3 : fprintf(freq, "D-Block\n");
 			break;
-		case 4 : fprintf(freq,"Exact\n");
+		case 4 : fprintf(freq, "Exact\n");
 			break;
-		case 5 : fprintf(freq,"2 C's\n");
+		case 5 : fprintf(freq, "2 C's\n");
 			break;
+		case 6 : fprintf(freq, "Stripes\n");
+		    break;
     }
 	fprintf(freq,"# Steps: Total = %5d\n",TOTALSTEPS);
 
@@ -757,6 +804,28 @@ void initial_state(int *s,  int lsize, int initialstate, double probc, double pr
              }
 	    }/**/
       break;
+      case 6 :
+              for (i = 0; i < l2; ++i)
+        		{
+           			*(s+i) = 1;
+        		}
+              vazios = 0;
+              while (vazios < (int) NUM_DEFECTS)
+            	{
+            		i= (int) (FRANDOM1*l2);
+            		if (*(s+i)!=0)
+            			{
+            				*(s+i)=0;
+            				++vazios;
+            			}
+            	}
+            for (i = 0; i < l2; ++i)
+            	{
+            		if (*(s+i)!=0 && i > (l2 / 2))
+            		{
+                		*(s+i) = -1;
+                    }
+                }
     }
 return;
 }
