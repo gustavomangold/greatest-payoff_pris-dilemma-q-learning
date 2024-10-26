@@ -18,7 +18,7 @@ const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
-const int INITIALSTATE   = 6;               		  /*1:random 2:one D 3:D-block 4: exact
+const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: exact
 													5: 2C's  6: Stripes*/
 const double PROB_C	     = 0.1;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
@@ -36,8 +36,10 @@ const int    TOTALSTEPS  = 20000; //100000				      /*total number of generation
 
 const int  C              =  1;
 const int  D              = -1; //#define D (-1)
-const int  MOVE			  =  0;
-const int  COMPARE        =  2;
+
+const int  COMPARE        = 0;
+const int  MOVE_AS_C      = 1;
+const int  MOVE_AS_D      = -1;
 
 #define NUM_STATES  	   2
 
@@ -45,12 +47,13 @@ const int Dindex  		 = 0;
 const int Cindex  		 = 1;
 
 const int COMPAREindex   = 0;
-const int MOVEindex      = 1;
+const int MOVE_AS_Cindex = 1;
+const int MOVE_AS_Dindex = 2;
 
 const int STATES[NUM_STATES]   = {D, C};
 
-#define NUM_ACTIONS 	   2
-const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE};
+#define NUM_ACTIONS 	   3
+const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE_AS_C, MOVE_AS_D};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
@@ -59,11 +62,11 @@ int    SNAPSHOT_TEMPORAL_DIFFERENCE;
 
 /****** Q-Learning **********/
 double        EPSILON	  = 1.; //1.0;
-const double  EPSILON_MIN = 0.15; //0.1;
+const double  EPSILON_MIN = 0.2; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.0001;
 const double  ALPHA       = 0.75; //0.75;
-const double  GAMMA       = 0.8; //0.75;
+const double  GAMMA       = 0.25; //0.75;
 
 /***************************************************************************
 *                      Variable Declarations                               *
@@ -141,7 +144,7 @@ unsigned long int set_gsl_rng(void)
 ***************************************************************************/
 extern void simulation(void)
 {
-	int iconf,i,j,k,l,m;
+	int iconf, i, j, k, l, m;
 	static int ICONF=0;
 
 	double epsilon_test=1.0;
@@ -158,9 +161,9 @@ extern void simulation(void)
 			{
 				while (numsteps <= t[i])
 				{
-					epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
-					//EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
-					EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					//epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
+					EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					//EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					local_dynamics(s, payoff, empty_matrix, which_empty);
 
 					++numsteps;
@@ -413,7 +416,7 @@ void save_snapshots(int step, int *s){
     char output_snaps_freq[200];
 	int i;
 
-	sprintf(output_snaps_freq, "data/stochastic/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_snaps_freq, "data/move_as_c_or_d-async/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                                  step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                                  P_DIFFUSION, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
@@ -421,6 +424,7 @@ void save_snapshots(int step, int *s){
 	for (i = 0; i < (L2-1); ++i){
 	   fprintf(fconf,"%d,", s[i]);
 	}
+	// for last character not to be a comma
 	fprintf(fconf,"%d", s[L2-1]);
 	fclose(fconf);
     return;
@@ -467,9 +471,8 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 			else // greedy
 				find_maximum_Q_value(chosen_site, &initial_s_index, &new_action, &new_action_index, &maxQ);
 
-			if (new_action_index != MOVEindex)
+			if ((new_action_index != MOVE_AS_Cindex) && (new_action_index != MOVE_AS_Dindex))
 			{
-
 				compare_payoff(payoff, s, &state_max, chosen_site, initial_payoff);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
 
@@ -493,14 +496,22 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 
 				if (moved)
 				{
-    				// payoff changes in new site
-    				double final_payoff  = pd_payoff(s, initial_s, chosen_site);
+				    // update state according to action
+				    if (new_action_index == MOVE_AS_Cindex){
+						s[chosen_site] = C;
+					}
+					else{
+					    s[chosen_site] = D;
+					}
+    				// play with new state
+    				double final_payoff  = pd_payoff(s, s[chosen_site], chosen_site);
     				reward               = final_payoff;
 
     				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
+                    // update q-value referent to initial state, as the payoff came from the action taken in that state
     				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA*new_maxQ
-    										- Q[chosen_site][initial_s_index][new_action_index] );
+    										- Q[chosen_site][initial_s_index][new_action_index]);
 
                     payoff[chosen_site] = reward;
 				}
@@ -534,7 +545,7 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 
 #ifdef USEGFX
 	view2d(LSIZE, s, numsteps, TOTALSTEPS, t, num_c, num_d, NUM_DEFECTS);
-	//syst_return = system("sleep 1");
+	system("sleep 1");
 #endif
 
   return;
@@ -601,13 +612,13 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/stochastic/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/move_as_c_or_d-async/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                               P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
-	fprintf(freq,"# Stochastic version, playing with compared payoff \n");//- V%s\n",VERSION);
+	fprintf(freq,"# Move as C or D version, playing with compared payoff \n");//- V%s\n",VERSION);
 	fprintf(freq,"# Lattice: %d x %d = %d\n",LSIZE,LSIZE,L2);
 	fprintf(freq,"# Random seed: %ld\n",seed);
 	fprintf(freq,"# N_CONF = %d \n",NUM_CONF);
@@ -648,7 +659,7 @@ void file_initialization(void)
 
 	//fprintf(freq,"#t  f_c  f_d  f_ac  Qcc  Qcd Qdc Qdd P\n");
 
-	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdm Qcb Qcm\n");
+	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdmc Qdmd Qcb Qcmc Qcmd\n");
 
 	for (i=0;i<MEASURES;++i)
 	{
