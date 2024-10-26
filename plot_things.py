@@ -32,7 +32,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     return
 
 def plot_separate_column(colnames, color):
-    for column in colnames:
+    for column in colnames[1:]:
         if column[2] == 'b':
             plt.plot(data[['t']].to_numpy(), data[[column]].to_numpy(),
                 color = next(color), label = r'$Q_{{{}}}$'.format(column[1:]))
@@ -40,7 +40,7 @@ def plot_separate_column(colnames, color):
     plt.savefig(filename + 'q-table-for-d.png', dpi = 400, bbox_inches='tight')
     plt.close()
 
-    for column in colnames:
+    for column in colnames[1:]:
         if column[2] == 'm':
             plt.plot(data[['t']].to_numpy(), data[[column]].to_numpy(),
                 color = next(color), label = r'$Q_{{{}}}$'.format(column[1:]))
@@ -103,7 +103,8 @@ for filename in glob.glob(path + 'T*.dat'):
         mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
         var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
-        plot_data_values(filename, data, colnames, color, 'cooperation')
+        """if key <= 0.01:
+            plot_data_values(filename, data, colnames, color, 'q-table')"""
 
         if key in (cooperation_dict.keys()):
             cooperation_dict[key].append([x_variable, float(mean_coop)])
@@ -117,10 +118,11 @@ for filename in glob.glob(path + 'T*.dat'):
         cooperation_plot.append(mean_coop)
 
         index += 1
-    except:
+    except Exception as E:
         print('Unavailable data for' + filename)
+        print(E)
 
-#plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
+plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
 plt.style.use('seaborn-v0_8-ticks')
 
@@ -146,16 +148,20 @@ plt.close()
 plt.clf()
 plt.cla()
 
+color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
+marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
+
 index = 0
 for key in sorted(variance_dict.keys()):
-    color_both_plots = next(color)
-    plt.scatter(*zip(*variance_dict[key]),  marker = next(marker), linestyle='',
-        label = r'$\rho = $' + str(key), color = color_both_plots)
-    #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
-    index += 1
+    if key in [0.01, 0.03, 0.05, 0.1, 0.5, 1.]:
+        color_both_plots = next(color)
+        plt.scatter(*zip(*variance_dict[key]),  marker = next(marker), linestyle='',
+            label = r'$p_d = $' + str(key), color = color_both_plots)
+        #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
+        index += 1
 
 plt.title('')
-plt.xlabel(r'$b$')
+plt.xlabel(r'$\rho$')
 plt.ylabel(r'$\sigma ^2$')
 #plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5)
 plt.savefig('variance_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
