@@ -75,7 +75,7 @@ const int L2   = LSIZE * LSIZE;
 
 unsigned long  right[LL], left[LL], top[LL], down[LL], neigh[LL][NUM_NEIGH];
 unsigned long  num_empty_sites, empty_matrix[LL], which_empty[LL];
-int            s[LL];
+int            s[LL], plot_list[LL];
 double 		   payoff[LL];
 
 double		   Q[LL][NUM_STATES][NUM_ACTIONS];
@@ -102,7 +102,7 @@ gsl_rng * r;
 ***************************************************************************/
 void file_initialization(void);
 void initialization(void);
-void local_dynamics(int *s, double *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
+void local_dynamics(int *s, double *payoff, int *plot_list, unsigned long *empty_matrix,unsigned long *which_emp);
 void count_neighbours(int *s, int ii, int *nc, int *nd);
 void determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
 void initial_state(int *s, int lsize, int initialstate, double probc, double probd);
@@ -164,7 +164,7 @@ extern void simulation(void)
 					//epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
 					EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					//EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
-					local_dynamics(s, payoff, empty_matrix, which_empty);
+					local_dynamics(s, payoff, plot_list, empty_matrix, which_empty);
 
 					++numsteps;
 				}
@@ -236,7 +236,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 /***************************************************************************
  *                          Random Diffusion                               *
  ***************************************************************************/
- int rand_diffusion(int *s1, int *s, unsigned long *empty_matrix,unsigned long *which_empty)
+ int rand_diffusion(int *s1, int *s, int *plot_list, unsigned long *empty_matrix,unsigned long *which_empty)
 {
 	int    i, j, k, s2;
 	double sample_random = FRANDOM1;
@@ -254,6 +254,9 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 
 			payoff[s2] = payoff[*s1]; // Change payoffs
 			payoff[*s1] = 0.0;
+
+			plot_list[s2]  = plot_list[*s1]; // Change plot_list
+			plot_list[*s1] = 0.0;
 
 			for(j=0; j<NUM_STATES;++j) // Change Q values
 			{
@@ -433,9 +436,9 @@ void save_snapshots(int step, int *s){
 /***************************************************************************
  *                           Local Dynamics                                *
  ***************************************************************************/
-void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
+void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empty_matrix, unsigned long *which_emp)
 {
-	int stemp[L2], plot_list[L2];
+	int stemp[L2];
 	int i, j, chosen_index, chosen_site;
 	int initial_s_index, new_action_index;
 	int initial_s;
@@ -450,7 +453,7 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 	num_dc = 0;
 	num_d  = 0;
 
-	for (i=num_empty_sites; i < L2; ++i)
+	for (i = num_empty_sites; i < L2; ++i)
 		stemp[empty_matrix[i]] = s[empty_matrix[i]];
 
 	for (j=0; j < L2; ++j)
@@ -494,7 +497,7 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 			}
 			else // try to move
 			{
-				int moved = rand_diffusion(&chosen_site, s, empty_matrix, which_empty);
+				int moved = rand_diffusion(&chosen_site, s, plot_list, empty_matrix, which_empty);
 				// Chosen site possivelmente atualizado
 
 				if (moved)
@@ -532,12 +535,10 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 		switch (s[s1])
 		{
 			case C: {
-			            plot_list[s1] = C;
 						++num_c;
 						if  (stemp[s1] == D) ++num_dc;
 					 }	break;
 			case D: {
-			            plot_list[s1] = D;
 						++num_d;
 						if  (stemp[s1] == C) ++num_cd;
 
@@ -546,14 +547,13 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 	}
 
 #ifdef SAVESNAPSHOTS
-    if (numsteps % SNAPSHOT_TEMPORAL_DIFFERENCE == 0){
-        save_snapshots(numsteps, s);
+    if ((numsteps + 1) % SNAPSHOT_TEMPORAL_DIFFERENCE == 0){
+        save_snapshots(numsteps, plot_list);
     }
 #endif
 
 #ifdef USEGFX
 	view2d(LSIZE, s, numsteps, TOTALSTEPS, t, num_c, num_d, NUM_DEFECTS);
-	system("sleep 1");
 #endif
 
   return;
@@ -567,7 +567,7 @@ int main(int argc, char **argv)
     #ifdef SAVESNAPSHOTS
    	if (argc != 5)
    	{
-  		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
+  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and SNAPSHOT_TEMPORAL_DIFFERENCE\n");
   		exit(1);
    	}
    	else
@@ -576,6 +576,7 @@ int main(int argc, char **argv)
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
 
+        // how frequent to save snapshots
         SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[4]);
    	}
     #else
@@ -701,6 +702,8 @@ void initialization(void)
     {
 		payoff[i] = 0.0;
 
+		plot_list[i] = s[i];
+
 		switch(s[i])
 		{
 			case C: ++num_c;
@@ -719,7 +722,7 @@ void initialization(void)
 
 #ifdef USEGFX
 	int syst_return;
-	view2d(LSIZE, s, numsteps, TOTALSTEPS, t, num_c, num_d, NUM_DEFECTS);
+	view2d(LSIZE, plot_list, numsteps, TOTALSTEPS, t, num_c, num_d, NUM_DEFECTS);
 	syst_return = system("sleep 0.5");
 	if (syst_return == 1000)
 		printf("Uot!\n");

@@ -19,10 +19,12 @@ for filename in glob.glob(path + '*.dat'):
     figure = plt.figure()
     axes = figure.add_subplot(111)
 
-    cmap = lcm(['#E41B62', '#e42a15', '#15100f', '#0116a6', '#1BE49D'])
+    # saturated red, red, black, blue, saturated blue
+    cmap = lcm(['#D42B3D', '#e42a15', '#15100f', '#0116a6', '#34C5CB'])
 
     # using the matshow() function
-    axes.matshow(data, cmap=cmap, rasterized=True, vmin=-2, vmax=2)
+    cax = axes.matshow(data, cmap=cmap, rasterized=True, vmin=-2, vmax=2)
+    cbar = plt.colorbar(cax)
 
     plt.savefig(path + filename.strip('.dat').strip(path) + '.png', dpi=400, bbox_inches='tight')
     plt.clf()

@@ -63,7 +63,7 @@ def plot_data_values(filename, data, colnames, color, identifier: str):
     plt.cla()
     plt.close()
 
-path = './data/stochastic/'
+path = './data/move_as_c_or_d-async/'
 
 color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
 
@@ -105,6 +105,7 @@ for filename in glob.glob(path + 'T*.dat'):
 
         """if key <= 0.01:
             plot_data_values(filename, data, colnames, color, 'q-table')"""
+        plot_data_values(filename, data, colnames, color, 'cooperation')
 
         if key in (cooperation_dict.keys()):
             cooperation_dict[key].append([x_variable, float(mean_coop)])
