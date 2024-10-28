@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from   numpy import genfromtxt
 from   matplotlib.colors import ListedColormap as lcm
 
-path = './data/stochastic/snapshots/'
+path = './data/move_as_c_or_d-async/snapshots/'
 L = 100
 
 for filename in glob.glob(path + '*.dat'):
@@ -19,10 +19,10 @@ for filename in glob.glob(path + '*.dat'):
     figure = plt.figure()
     axes = figure.add_subplot(111)
 
-    cmap = lcm(['#e42a15', '#15100f', '#0116a6'])
+    cmap = lcm(['#E41B62', '#e42a15', '#15100f', '#0116a6', '#1BE49D'])
 
     # using the matshow() function
-    axes.matshow(data, cmap=cmap, rasterized=True, vmin=-1, vmax=1)
+    axes.matshow(data, cmap=cmap, rasterized=True, vmin=-2, vmax=2)
 
     plt.savefig(path + filename.strip('.dat').strip(path) + '.png', dpi=400, bbox_inches='tight')
     plt.clf()

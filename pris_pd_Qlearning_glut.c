@@ -435,7 +435,7 @@ void save_snapshots(int step, int *s){
  ***************************************************************************/
 void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
 {
-	int stemp[L2];
+	int stemp[L2], plot_list[L2];
 	int i, j, chosen_index, chosen_site;
 	int initial_s_index, new_action_index;
 	int initial_s;
@@ -459,6 +459,8 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 		chosen_site  = empty_matrix[chosen_index];
 
 		initial_s = s[chosen_site];
+
+		plot_list[chosen_site] = initial_s;
 
 		if  (initial_s != 0)
 		{
@@ -485,8 +487,9 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA*(reward + GAMMA*new_maxQ
 										- Q[chosen_site][initial_s_index][new_action_index]);
 
-				s[chosen_site]      = state_max;
-				payoff[chosen_site] = final_payoff;
+				s[chosen_site]         = state_max;
+				plot_list[chosen_site] = state_max;
+				payoff[chosen_site]    = final_payoff;
 
 			}
 			else // try to move
@@ -498,10 +501,12 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 				{
 				    // update state according to action
 				    if (new_action_index == MOVE_AS_Cindex){
-						s[chosen_site] = C;
+						s[chosen_site]         = C;
+						plot_list[chosen_site] = 2;
 					}
 					else{
-					    s[chosen_site] = D;
+					    s[chosen_site]         = D;
+						plot_list[chosen_site] = -2;
 					}
     				// play with new state
     				double final_payoff  = pd_payoff(s, s[chosen_site], chosen_site);
@@ -519,6 +524,7 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 			}
 		} // if(s1!=0)
 	}
+
 	for (i=num_empty_sites; i< L2; ++i)
 	{
 		int s1 = empty_matrix[i];
@@ -526,10 +532,12 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 		switch (s[s1])
 		{
 			case C: {
+			            plot_list[s1] = C;
 						++num_c;
 						if  (stemp[s1] == D) ++num_dc;
 					 }	break;
 			case D: {
+			            plot_list[s1] = D;
 						++num_d;
 						if  (stemp[s1] == C) ++num_cd;
 
