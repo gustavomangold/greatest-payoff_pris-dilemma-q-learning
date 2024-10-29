@@ -26,7 +26,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     cbar = plt.colorbar()
     cbar.set_ticks(np.arange(round(min(z), 1), round(max(z), 1), .1))
 
-    plt.savefig('heatmap_coop_versus_prob-diff_and_alpha-share.png', dpi=400, bbox_inches='tight')
+    plt.savefig('heatmap_coop-parallel.png.png', dpi=400, bbox_inches='tight')
     plt.clf()
 
     return
@@ -103,7 +103,7 @@ for filename in glob.glob(path + 'T*.dat'):
         mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
         var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
-        plot_data_values(filename, data, colnames, color, 'cooperation')
+        #plot_data_values(filename, data, colnames, color, 'cooperation')
 
         '''if np.random.rand() < 0.1:
             plot_data_values(filename, data, colnames, color, 'q-table')
@@ -124,18 +124,20 @@ for filename in glob.glob(path + 'T*.dat'):
     except:
         print('Unavailable data for' + filename)
 
-#plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
-
 plt.style.use('seaborn-v0_8-ticks')
+
+mpl.rc('axes', labelsize = 13)
+
+plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
 marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
-    if (key in [0.01, 0.05, 0.1, 0.2, 1]):
+    if (key in [0.01, 0.05, 0.1, 1]):
         color_both_plots = next(color)
         plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
-            label = r'$p_d = $' + str(key), color = color_both_plots)
+            label = r'$p_d = $' + str(key), color = color_both_plots, s=20)
         #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
         index += 1
 
@@ -144,11 +146,13 @@ plt.ylim(0., 1.)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5)
-plt.savefig('cooperation_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
+plt.savefig('cooperation_versus_b-per_occupation-parallel.png', dpi=400, bbox_inches='tight')
 
 plt.close()
 plt.clf()
 plt.cla()
+
+mpl.rc('axes', labelsize = 13)
 
 index = 0
 for key in sorted(variance_dict.keys()):
@@ -162,7 +166,7 @@ plt.title('')
 plt.xlabel(r'$b$')
 plt.ylabel(r'$\sigma ^2$')
 #plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5)
-plt.savefig('variance_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
+plt.savefig('variance_versus_b-per_occupation-parallel.png.png', dpi=400, bbox_inches='tight')
 
 """index = 0
 for filename in glob.glob(path + 'T*.dat'):
