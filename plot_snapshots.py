@@ -20,7 +20,7 @@ for filename in glob.glob(path + '*.dat'):
     axes = figure.add_subplot(111)
 
     # saturated red, red, black, blue, saturated blue
-    cmap = lcm(['#D42B3D', '#e42a15', '#15100f', '#0116a6', '#34C5CB'])
+    cmap = lcm(['#E41568', '#e42a15', '#15100f', '#0116a6', '#0169A6'])
 
     # using the matshow() function
     cax = axes.matshow(data, cmap=cmap, rasterized=True, vmin=-2, vmax=2)

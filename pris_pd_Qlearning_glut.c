@@ -20,7 +20,7 @@ const int NUM_CONF       = 1;
 
 const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: exact
 													5: 2C's  6: Stripes*/
-const double PROB_C	     = 0.1;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
+const double PROB_C	     = 0.5;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
 const int    TOTALSTEPS  = 20000; //100000				      /*total number of generations (MCS)*/
@@ -38,8 +38,8 @@ const int  C              =  1;
 const int  D              = -1; //#define D (-1)
 
 const int  COMPARE        = 0;
-const int  MOVE_AS_C      = 1;
-const int  MOVE_AS_D      = -1;
+const int  MOVE_AS_C      = 2;
+const int  MOVE_AS_D      = -2;
 
 #define NUM_STATES  	   2
 
@@ -62,11 +62,11 @@ int    SNAPSHOT_TEMPORAL_DIFFERENCE;
 
 /****** Q-Learning **********/
 double        EPSILON	  = 1.; //1.0;
-const double  EPSILON_MIN = 0.2; //0.1;
+const double  EPSILON_MIN = 0.15; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.0001;
-const double  ALPHA       = 0.75; //0.75;
-const double  GAMMA       = 0.25; //0.75;
+const double  ALPHA       = 0.7; //0.75;
+const double  GAMMA       = 0.1; //0.75;
 
 /***************************************************************************
 *                      Variable Declarations                               *
@@ -373,6 +373,8 @@ double pd_payoff(int *s, int ss, int ii)
 	}
 	//pay = calculate_payoff(ss,nc,nd);
 
+	//printf("%f\n", pay);
+
 	return pay;
 }
 /***************************************************************************
@@ -445,6 +447,7 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 
 	double maxQ, new_maxQ;
 	double reward;
+	double final_payoff;
 	int    state_max;
 	int    new_action, future_action, future_action_index;
 
@@ -481,7 +484,7 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 				compare_payoff(payoff, s, &state_max, chosen_site, initial_payoff);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
 
-			    double final_payoff   = pd_payoff(s, state_max, chosen_site);
+			    final_payoff   = pd_payoff(s, state_max, chosen_site);
 
 				reward = final_payoff;
 
@@ -502,18 +505,19 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 
 				if (moved)
 				{
+				    int new_state;
 				    // update state according to action
 				    if (new_action_index == MOVE_AS_Cindex){
-						s[chosen_site]         = C;
+						new_state              = C;
 						plot_list[chosen_site] = 2;
 					}
 					else{
-					    s[chosen_site]         = D;
+					    new_state              = D;
 						plot_list[chosen_site] = -2;
 					}
     				// play with new state
-    				double final_payoff  = pd_payoff(s, s[chosen_site], chosen_site);
-    				reward               = final_payoff;
+    				final_payoff  = pd_payoff(s, new_state, chosen_site);
+    				reward        = final_payoff;
 
     				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
@@ -522,8 +526,8 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
     										- Q[chosen_site][initial_s_index][new_action_index]);
 
                     payoff[chosen_site] = reward;
+                    s[chosen_site]      = new_state;
 				}
-
 			}
 		} // if(s1!=0)
 	}
