@@ -621,6 +621,7 @@ void file_initialization(void)
 	fprintf(freq,"# Initial prob(d) = %5.4f\n",PROB_D);
 	fprintf(freq,"# Prob diffusion = %5.4f\n",P_DIFFUSION);
 
+	fprintf(freq,"# ALPHA   = %5.3f\n", ALPHA);
 	fprintf(freq,"# GAMMA   = %5.3f\n", GAMMA);
 	fprintf(freq,"# LAMBDA  = %5.3f\n", LAMBDA);
 	fprintf(freq,"# EPSILON = %5.3f\n", EPSILON);
