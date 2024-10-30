@@ -65,8 +65,8 @@ double        EPSILON	  = 1.; //1.0;
 const double  EPSILON_MIN = 0.15; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.0001;
-const double  ALPHA       = 0.7; //0.75;
-const double  GAMMA       = 0.1; //0.75;
+const double  ALPHA       = 0.75; //0.75;
+const double  GAMMA       = 0.25; //0.75;
 
 /***************************************************************************
 *                      Variable Declarations                               *
@@ -147,7 +147,7 @@ extern void simulation(void)
 	int iconf, i, j, k, l, m;
 	static int ICONF=0;
 
-	double epsilon_test=1.0;
+	//double epsilon_test=1.0;
 
    while(ICONF < NUM_CONF) //FOR GLUT
    {
@@ -236,7 +236,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 /***************************************************************************
  *                          Random Diffusion                               *
  ***************************************************************************/
- int rand_diffusion(int *s1, int *s, int *plot_list, unsigned long *empty_matrix,unsigned long *which_empty, int *new_action_index)
+ int rand_diffusion(int *s1, int *s, int *plot_list, unsigned long *empty_matrix,unsigned long *which_empty, int new_action_index)
 {
 	int    i, j, k, s2;
 	double sample_random = FRANDOM1;
@@ -520,8 +520,8 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 						plot_list[chosen_site] = MOVE_HORIZONTAL;
 					}
     				// play with new state
-    				//final_payoff  = pd_payoff(s, initial_s, chosen_site);
-    				reward = initial_payoff;
+    				final_payoff  = pd_payoff(s, initial_s, chosen_site);
+    				reward        = final_payoff;
 
     				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
@@ -530,7 +530,6 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
     										- Q[chosen_site][initial_s_index][new_action_index]);
 
                     payoff[chosen_site] = reward;
-                    s[chosen_site]      = new_state;
 				}
 			}
 		} // if(s1!=0)
@@ -676,7 +675,7 @@ void file_initialization(void)
 
 	//fprintf(freq,"#t  f_c  f_d  f_ac  Qcc  Qcd Qdc Qdd P\n");
 
-	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdmc Qdmd Qcb Qcmc Qcmd\n");
+	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdmv Qdmh Qcb Qcmv Qcmh\n");
 
 	for (i=0;i<MEASURES;++i)
 	{
