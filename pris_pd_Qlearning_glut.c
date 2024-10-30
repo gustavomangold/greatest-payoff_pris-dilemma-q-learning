@@ -38,8 +38,8 @@ const int  C              =  1;
 const int  D              = -1; //#define D (-1)
 
 const int  COMPARE        = 0;
-const int  MOVE_AS_C      = 2;
-const int  MOVE_AS_D      = -2;
+const int  MOVE_VERTICAL        = 2;
+const int  MOVE_HORIZONTAL      = -2;
 
 #define NUM_STATES  	   2
 
@@ -47,13 +47,13 @@ const int Dindex  		 = 0;
 const int Cindex  		 = 1;
 
 const int COMPAREindex   = 0;
-const int MOVE_AS_Cindex = 1;
-const int MOVE_AS_Dindex = 2;
+const int MOVE_VERTICALindex   = 1;
+const int MOVE_HORIZONTALindex = 2;
 
 const int STATES[NUM_STATES]   = {D, C};
 
 #define NUM_ACTIONS 	   3
-const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE_AS_C, MOVE_AS_D};
+const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE_VERTICAL, MOVE_HORIZONTAL};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
@@ -236,7 +236,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 /***************************************************************************
  *                          Random Diffusion                               *
  ***************************************************************************/
- int rand_diffusion(int *s1, int *s, int *plot_list, unsigned long *empty_matrix,unsigned long *which_empty)
+ int rand_diffusion(int *s1, int *s, int *plot_list, unsigned long *empty_matrix,unsigned long *which_empty, int *new_action_index)
 {
 	int    i, j, k, s2;
 	double sample_random = FRANDOM1;
@@ -244,7 +244,14 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 	if (sample_random < P_DIFFUSION)
     {
 		sample_random = FRANDOM1;
-		i  = (int)((double)(NUM_NEIGH) * sample_random);  // choose random direction
+		// differentiante when action is taken, can only move in one general axis
+		// choose random direction
+		if (new_action_index == MOVE_HORIZONTALindex){
+		    i  = (int)((double)(NUM_NEIGH - 2) * sample_random);
+		}
+		else{
+		    i  = (int)((double)(NUM_NEIGH) * sample_random) - 2;
+		}
 		s2 = neigh[*s1][i];
 
 		if (s[s2] == 0) // test if chosen direction is empty
@@ -421,7 +428,7 @@ void save_snapshots(int step, int *s){
     char output_snaps_freq[200];
 	int i;
 
-	sprintf(output_snaps_freq, "data/move_as_c_or_d-async/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_snaps_freq, "data/move-different_directions-async/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                                  step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                                  P_DIFFUSION, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
@@ -479,7 +486,7 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 			else // greedy
 				find_maximum_Q_value(chosen_site, &initial_s_index, &new_action, &new_action_index, &maxQ);
 
-			if ((new_action_index != MOVE_AS_Cindex) && (new_action_index != MOVE_AS_Dindex))
+			if ((new_action_index != MOVE_VERTICALindex) && (new_action_index != MOVE_HORIZONTALindex))
 			{
 				compare_payoff(payoff, s, &state_max, chosen_site, initial_payoff);
 				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
@@ -500,24 +507,21 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 			}
 			else // try to move
 			{
-				int moved = rand_diffusion(&chosen_site, s, plot_list, empty_matrix, which_empty);
+				int moved = rand_diffusion(&chosen_site, s, plot_list, empty_matrix, which_empty, new_action_index);
 				// Chosen site possivelmente atualizado
 
 				if (moved)
 				{
-				    int new_state;
-				    // update state according to action
-				    if (new_action_index == MOVE_AS_Cindex){
-						new_state              = C;
-						plot_list[chosen_site] = 2;
+				    // update plot list
+				    if (new_action_index == MOVE_VERTICALindex){
+						plot_list[chosen_site] = MOVE_VERTICAL;
 					}
 					else{
-					    new_state              = D;
-						plot_list[chosen_site] = -2;
+						plot_list[chosen_site] = MOVE_HORIZONTAL;
 					}
     				// play with new state
-    				final_payoff  = pd_payoff(s, new_state, chosen_site);
-    				reward        = final_payoff;
+    				//final_payoff  = pd_payoff(s, initial_s, chosen_site);
+    				reward = initial_payoff;
 
     				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
@@ -625,7 +629,7 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/move_as_c_or_d-async/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/move-different_directions-async/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                               P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
