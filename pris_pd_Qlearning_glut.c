@@ -14,7 +14,7 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 20;
+const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
@@ -23,7 +23,7 @@ const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: 
 const double PROB_C	     = 0.5;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 20000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -249,8 +249,9 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 		if (new_action_index == MOVE_HORIZONTALindex){
 		    i  = (int)((double)(NUM_NEIGH - 2) * sample_random);
 		}
+		// will sample between 2 and 3, or top and down
 		else{
-		    i  = (int)((double)(NUM_NEIGH) * sample_random) - 2;
+		    i  = ((int)((double)(NUM_NEIGH) * sample_random)) % 2 + 2;
 		}
 		s2 = neigh[*s1][i];
 
@@ -634,7 +635,7 @@ void file_initialization(void)
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
-	fprintf(freq,"# Move as C or D version, playing with compared payoff \n");//- V%s\n",VERSION);
+	fprintf(freq,"# Move to horizontal or vertical directions, playing with compared payoff \n");//- V%s\n",VERSION);
 	fprintf(freq,"# Lattice: %d x %d = %d\n",LSIZE,LSIZE,L2);
 	fprintf(freq,"# Random seed: %ld\n",seed);
 	fprintf(freq,"# N_CONF = %d \n",NUM_CONF);
