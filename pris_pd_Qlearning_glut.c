@@ -18,12 +18,12 @@ const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
-const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: exact
+const int INITIALSTATE   = 1;               		  /*1:random 2:one D 3:D-block 4: exact
 													5: 2C's  6: Stripes*/
 const double PROB_C	     = 0.5;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 20000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -52,7 +52,7 @@ const int MOVE_HORIZONTALindex = 2;
 
 const int STATES[NUM_STATES]   = {D, C};
 
-#define NUM_ACTIONS 	   3
+#define NUM_ACTIONS 3
 const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE_VERTICAL, MOVE_HORIZONTAL};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
@@ -62,7 +62,7 @@ int    SNAPSHOT_TEMPORAL_DIFFERENCE;
 
 /****** Q-Learning **********/
 double        EPSILON	  = 1.; //1.0;
-const double  EPSILON_MIN = 0.15; //0.1;
+const double  EPSILON_MIN = 0.05; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.0001;
 const double  ALPHA       = 0.75; //0.75;
@@ -79,6 +79,10 @@ int            s[LL], plot_list[LL];
 double 		   payoff[LL];
 
 double		   Q[LL][NUM_STATES][NUM_ACTIONS];
+
+//temporary
+int COUNT_RIGHT, COUNT_LEFT;
+int COUNT_UP, COUNT_DOWN;
 
 unsigned long  seed, numsteps, num_c, num_cd, num_dc, num_d;
 long           t[MEASURES];
@@ -147,7 +151,7 @@ extern void simulation(void)
 	int iconf, i, j, k, l, m;
 	static int ICONF=0;
 
-	//double epsilon_test=1.0;
+	double epsilon_test=1.0;
 
    while(ICONF < NUM_CONF) //FOR GLUT
    {
@@ -157,13 +161,16 @@ extern void simulation(void)
 			fflush(stdout);
 			++ICONF;
 			initialization();
-			for (i=0; i<MEASURES; ++i)
+			#ifdef SAVESNAPSHOTS
+                save_snapshots(0, s);
+            #endif
+			for (i = 0; i < MEASURES; ++i)
 			{
 				while (numsteps <= t[i])
 				{
-					//epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
-					EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
-					//EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
+					//EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					local_dynamics(s, payoff, plot_list, empty_matrix, which_empty);
 
 					++numsteps;
@@ -194,6 +201,11 @@ extern void simulation(void)
 					break;
 				}
 			}
+			//last step
+			#ifdef SAVESNAPSHOTS
+                save_snapshots(numsteps, s);
+            #endif
+
 		}
 
 		for(i=0;i<MEASURES;++i)
@@ -243,16 +255,30 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 
 	if (sample_random < P_DIFFUSION)
     {
-		sample_random = FRANDOM1;
+        sample_random = FRANDOM1;
 		// differentiante when action is taken, can only move in one general axis
 		// choose random direction
 		if (new_action_index == MOVE_HORIZONTALindex){
 		    i  = (int)((double)(NUM_NEIGH - 2) * sample_random);
+			if (i == 0){
+			    COUNT_LEFT += 1;
+			}
+			if (i == 1){
+			    COUNT_RIGHT += 1;
+			}
 		}
 		// will sample between 2 and 3, or top and down
 		else{
-		    i  = ((int)((double)(NUM_NEIGH) * sample_random)) % 2 + 2;
+		    sample_random = FRANDOM1;
+		    i  = ((int)((double)(NUM_NEIGH - 2) * sample_random)) + 2;
+			if (i == 2){
+			    COUNT_UP += 1;
+			}
+			if (i == 3){
+			    COUNT_DOWN += 1;
+			}
 		}
+
 		s2 = neigh[*s1][i];
 
 		if (s[s2] == 0) // test if chosen direction is empty
@@ -390,9 +416,9 @@ double pd_payoff(int *s, int ss, int ii)
  ***************************************************************************/
 void random_choice(int site, int *new_action, int *new_action_index)
 {
-	// Chooses an integer in [0,NUM_ACTIONS)
+	// Chooses an integer in [0, NUM_ACTIONS)
 
-	*new_action_index = (int) (FRANDOM1 * NUM_ACTIONS);
+	*new_action_index = (int) (FRANDOM1 * (NUM_ACTIONS));
 	*new_action = ACTIONS[*new_action_index];
 
 	return;
@@ -464,12 +490,19 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 	num_dc = 0;
 	num_d  = 0;
 
+	/*
+	COUNT_LEFT  = 0;
+	COUNT_RIGHT = 0;
+	COUNT_UP    = 0;
+	COUNT_DOWN  = 0;
+	 */
+
 	for (i = num_empty_sites; i < L2; ++i)
 		stemp[empty_matrix[i]] = s[empty_matrix[i]];
 
 	for (j=0; j < L2; ++j)
     {
-		chosen_index = (int)(num_empty_sites + FRANDOM1*(L2-num_empty_sites));
+		chosen_index = (int)(num_empty_sites + FRANDOM1 * (L2 - num_empty_sites));
 		chosen_site  = empty_matrix[chosen_index];
 
 		initial_s = s[chosen_site];
@@ -536,6 +569,8 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 		} // if(s1!=0)
 	}
 
+	//printf("%d, %d\n %d %d \n\n", COUNT_LEFT, COUNT_RIGHT, COUNT_UP, COUNT_DOWN);
+
 	for (i=num_empty_sites; i< L2; ++i)
 	{
 		int s1 = empty_matrix[i];
@@ -555,8 +590,8 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 	}
 
 #ifdef SAVESNAPSHOTS
-    if ((numsteps + 1) % SNAPSHOT_TEMPORAL_DIFFERENCE == 0){
-        save_snapshots(numsteps, plot_list);
+    if ((numsteps) % SNAPSHOT_TEMPORAL_DIFFERENCE == 0){
+        save_snapshots(numsteps, s);
     }
 #endif
 
@@ -752,12 +787,15 @@ void initial_state(int *s,  int lsize, int initialstate, double probc, double pr
     {
     case 1 : for (i = 0; i < l2; ++i)
 	{
-	  *(s+i) = 0;
-	  sample_random = FRANDOM1;
-	  if (sample_random<probc) *(s+i) = 1;
-	  else if (sample_random < (probc+probd)) *(s+i) = D;
+        sample_random = FRANDOM1;
+        if (sample_random < probc) *(s+i) = 1;
+        else if (sample_random < (probc + probd)) *(s+i) = -1;
+        sample_random = FRANDOM1;
+        if (sample_random < ((1.0 * NUM_DEFECTS)/(1.0 * L2))){
+            *(s+i) = 0;
+        }
 	}
-      break;
+    break;
     case 2 : for (i = 0; i < l2; ++i)
 	{
 	  *(s+i) = 0;
@@ -767,7 +805,7 @@ void initial_state(int *s,  int lsize, int initialstate, double probc, double pr
 	    *(s+i) = D;
 	  else if (sample_random<probc) *(s+i) = C;
 	}
-      break;
+    break;
     case 3 : for (i = 0; i < l2; ++i)
 	{
 	  *(s+i) = 0;
@@ -792,7 +830,7 @@ void initial_state(int *s,  int lsize, int initialstate, double probc, double pr
 			{
 				*(s+i) = 1;
 			}
-      vazios=0;
+      vazios = 0;
       while (vazios < (int) NUM_DEFECTS)
 		{
 			i= (int) (FRANDOM1*l2);
@@ -807,14 +845,14 @@ void initial_state(int *s,  int lsize, int initialstate, double probc, double pr
 			if (*(s+i)!=0)
 			{
 				sample_random = FRANDOM1;
-				if (sample_random<(probd/(probc+probd)))
+				if (sample_random < (probd/(probc+probd)))
 				{
 					*(s+i) = -1;
 				}
 	    }
 	}
       break;
-    case 5 :for (i = 0; i < l2; ++i)
+    case 5: for (i = 0; i < l2; ++i)
 			{
 				*(s+i) = -1;
 			}
@@ -870,12 +908,12 @@ unsigned long empty_site(unsigned long ll, int *nn,
 	unsigned long i,k;
 
 	k = 0;
-	for (i=0; i<ll; ++i)     /* Empty sites position, starting from k==0 */
+	for (i=0; i < ll; ++i)     /* Empty sites position, starting from k==0 */
 	{
 		if (nn[i]==0)
 		{                      /* nn represents the state */
 			empty_matrix[k] = i; /* lattice number corresponding to empty site */
-			which_emp[i] = k;    /* position of the empty site in the emp matrix*/
+			which_emp[i]    = k;    /* position of the empty site in the emp matrix*/
 			++k;
 		}
 		else

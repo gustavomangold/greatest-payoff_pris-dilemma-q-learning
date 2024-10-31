@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from   numpy import genfromtxt
 from   matplotlib.colors import ListedColormap as lcm
 
-path = './data/move_as_c_or_d-async/snapshots/'
+path = './data/move-different_directions-async/snapshots/'
 L = 100
 
 for filename in glob.glob(path + '*.dat'):
