@@ -14,11 +14,11 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 1;
+const int NUM_CONF       = 20;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
-const int INITIALSTATE   = 6;               		  /*1:random 2:one D 3:D-block 4: exact
+const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: exact
 													5: 2C's 6: stripes*/
 const double PROB_C	     = 0.50;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
@@ -143,7 +143,7 @@ extern void simulation(void)
 	int iconf,i,j,k,l,m;
 	static int ICONF=0;
 
-	double epsilon_test = 1.0;
+	//double epsilon_test = 1.0;
 
    while(ICONF < NUM_CONF) //FOR GLUT
    {
@@ -157,9 +157,9 @@ extern void simulation(void)
 			{
 				while (numsteps <= t[i])
 				{
-					epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
-					//EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
-					EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					//epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
+					EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					//EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					local_dynamics(s, payoff, empty_matrix, which_empty);
 
 					++numsteps;
@@ -666,6 +666,7 @@ void file_initialization(void)
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
+	fprintf(freq,"# Synchronous (parallel) update");//- V%s\n",VERSION);
 	fprintf(freq,"# Lattice: %d x %d = %d\n",LSIZE,LSIZE,L2);
 	fprintf(freq,"# Random seed: %ld\n",seed);
 	fprintf(freq,"# N_CONF = %d \n",NUM_CONF);
@@ -680,6 +681,7 @@ void file_initialization(void)
 	fprintf(freq,"# Prob diffusion = %5.4f\n",P_DIFFUSION);
 
 	fprintf(freq,"# GAMMA   = %5.3f\n", GAMMA);
+	fprintf(freq,"# ALPHA   = %5.3f\n", ALPHA);
 	fprintf(freq,"# LAMBDA  = %5.3f\n", LAMBDA);
 	fprintf(freq,"# EPSILON = %5.3f\n", EPSILON);
 	fprintf(freq,"# EPSILON_MIN = %5.3f\n", EPSILON_MIN);
