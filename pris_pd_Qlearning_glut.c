@@ -18,7 +18,7 @@ const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
-const int INITIALSTATE   = 1;               		  /*1:random 2:one D 3:D-block 4: exact
+const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: exact
 													5: 2C's  6: Stripes*/
 const double PROB_C	     = 0.5;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
@@ -62,7 +62,7 @@ int    SNAPSHOT_TEMPORAL_DIFFERENCE;
 
 /****** Q-Learning **********/
 double        EPSILON	  = 1.; //1.0;
-const double  EPSILON_MIN = 0.05; //0.1;
+const double  EPSILON_MIN = .2; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.0001;
 const double  ALPHA       = 0.75; //0.75;
@@ -81,8 +81,16 @@ double 		   payoff[LL];
 double		   Q[LL][NUM_STATES][NUM_ACTIONS];
 
 //temporary
-int COUNT_RIGHT, COUNT_LEFT;
-int COUNT_UP, COUNT_DOWN;
+int COUNT_RIGHT = 0;
+int COUNT_LEFT = 0;
+int COUNT_UP  = 0;
+int COUNT_DOWN  = 0;
+
+/*
+int HOLES_COUNT_UP  = 0;
+int HOLES_COUNT_DOWN  = 0;
+int HOLES_COUNT_RIGHT  = 0;
+int HOLES_COUNT_LEFT  = 0;*/
 
 unsigned long  seed, numsteps, num_c, num_cd, num_dc, num_d;
 long           t[MEASURES];
@@ -130,9 +138,9 @@ int odd(int x);
 unsigned long int set_gsl_rng(void)
 {
 #ifdef DEBUG
-  rseed=42;
+  rseed = 42;
 #else
-  rseed=time(NULL);
+  rseed = time(NULL);
 #endif
 
   gsl_rng_env_setup();
@@ -151,7 +159,7 @@ extern void simulation(void)
 	int iconf, i, j, k, l, m;
 	static int ICONF=0;
 
-	double epsilon_test=1.0;
+	//double epsilon_test = 1.0;
 
    while(ICONF < NUM_CONF) //FOR GLUT
    {
@@ -168,9 +176,9 @@ extern void simulation(void)
 			{
 				while (numsteps <= t[i])
 				{
-					epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
-					//EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
-					EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					//epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
+					EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					//EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					local_dynamics(s, payoff, plot_list, empty_matrix, which_empty);
 
 					++numsteps;
@@ -188,7 +196,7 @@ extern void simulation(void)
 
 				if ((num_d == (L2-num_empty_sites)) || (num_c == (L2-num_empty_sites)))
 				{
-					for (j=i+1; j < MEASURES; ++j)
+					for (j = i + 1; j < MEASURES; ++j)
 					{
 						num_c_ave[j]  += num_c;
 						num_d_ave[j]  += num_d;
@@ -221,12 +229,11 @@ extern void simulation(void)
 			fprintf(freq,"%ld %.6f %.6f %.6f ",t[i],num_c_ave[i],num_d_ave[i],num_cd_ave[i]);
 			for(l=0; l<NUM_STATES; ++l)
 				for(m=0; m<NUM_ACTIONS; ++m)
-					fprintf(freq,"%.6f ", Q_ave[i][l][m]);
-			fprintf(freq,"\n");
+					fprintf(freq, "%.6f ", Q_ave[i][l][m]);
+			fprintf(freq, "\n");
 		}
 		fclose(freq);
-
-}//GLUT END!!!
+    }//GLUT END!!!
   return;
 }
 /***************************************************************************
@@ -500,7 +507,7 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 	for (i = num_empty_sites; i < L2; ++i)
 		stemp[empty_matrix[i]] = s[empty_matrix[i]];
 
-	for (j=0; j < L2; ++j)
+	for (j = 0; j < L2; ++j)
     {
 		chosen_index = (int)(num_empty_sites + FRANDOM1 * (L2 - num_empty_sites));
 		chosen_site  = empty_matrix[chosen_index];
@@ -747,6 +754,20 @@ void initialization(void)
 
 		plot_list[i] = s[i];
 
+		/*
+		if (s[neigh[i][0]] == 0){
+            HOLES_COUNT_LEFT += 1;
+		}
+		if (s[neigh[i][1]] == 0){
+            HOLES_COUNT_RIGHT += 1;
+		}
+		if (s[neigh[i][2]] == 0){
+            HOLES_COUNT_UP += 1;
+		}
+		if (s[neigh[i][3]] == 0){
+            HOLES_COUNT_DOWN += 1;
+		}*/
+
 		switch(s[i])
 		{
 			case C: ++num_c;
@@ -762,6 +783,8 @@ void initialization(void)
 		}
 	}
 	fflush(freq);
+
+	//printf("%d, %d\n %d %d \n\n", HOLES_COUNT_LEFT, HOLES_COUNT_RIGHT, HOLES_COUNT_UP, HOLES_COUNT_DOWN);
 
 #ifdef USEGFX
 	int syst_return;
