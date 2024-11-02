@@ -14,16 +14,16 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 1;
+const int NUM_CONF       = 20;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
-const int INITIALSTATE   = 6;               		  /*1:random 2:one D 3:D-block 4: exact
+const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: exact
 													5: 2C's  6: Stripes*/
-const double PROB_C	     = 0.1;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
+const double PROB_C	     = 0.5;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 20000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -144,7 +144,7 @@ extern void simulation(void)
 	int iconf,i,j,k,l,m;
 	static int ICONF=0;
 
-	double epsilon_test=1.0;
+	//double epsilon_test=1.0;
 
    while(ICONF < NUM_CONF) //FOR GLUT
    {
@@ -158,9 +158,9 @@ extern void simulation(void)
 			{
 				while (numsteps <= t[i])
 				{
-					epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
-					//EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
-					EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					//epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
+					EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
+					//EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					local_dynamics(s, payoff, empty_matrix, which_empty);
 
 					++numsteps;

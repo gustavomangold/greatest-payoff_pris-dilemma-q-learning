@@ -113,9 +113,11 @@ for filename in glob.glob(path + 'T*.dat'):
             cooperation_dict[key] = [[x_variable, float(mean_coop)]]
             variance_dict[key] = [[x_variable, float(var_coop)]]
 
-        labels_to_plot.append(key)
-        x_axis_to_plot.append(x_variable)
-        cooperation_plot.append(mean_coop)
+        #no duplicates
+        if not (key in labels_to_plot and x_variable in x_axis_to_plot):
+            labels_to_plot.append(key)
+            x_axis_to_plot.append(x_variable)
+            cooperation_plot.append(mean_coop)
 
         index += 1
     except Exception as E:
