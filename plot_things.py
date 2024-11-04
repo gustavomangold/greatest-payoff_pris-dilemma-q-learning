@@ -99,32 +99,33 @@ for filename in glob.glob(path + 'T*.dat'):
     """plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
     plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')"""
     try:
-        x_variable  = float(filename.split('rho')[1][:4])
-        mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
-        var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
+        if (float(filename.split('T')[1][:4]) == 1.4):
+            x_variable  = float(filename.split('rho')[1][:4])
+            mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
+            var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
-        """if key <= 0.01:
-            plot_data_values(filename, data, colnames, color, 'q-table')"""
+            """if key <= 0.01:
+                plot_data_values(filename, data, colnames, color, 'q-table')"""
 
-        if key in (cooperation_dict.keys()):
-            cooperation_dict[key].append([x_variable, float(mean_coop)])
-            variance_dict[key].append([x_variable, float(var_coop)])
-        else:
-            cooperation_dict[key] = [[x_variable, float(mean_coop)]]
-            variance_dict[key] = [[x_variable, float(var_coop)]]
+            if key in (cooperation_dict.keys()):
+                cooperation_dict[key].append([x_variable, float(mean_coop)])
+                variance_dict[key].append([x_variable, float(var_coop)])
+            else:
+                cooperation_dict[key] = [[x_variable, float(mean_coop)]]
+                variance_dict[key] = [[x_variable, float(var_coop)]]
 
-        #no duplicates
-        if not (key in labels_to_plot and x_variable in x_axis_to_plot):
-            labels_to_plot.append(key)
-            x_axis_to_plot.append(x_variable)
-            cooperation_plot.append(mean_coop)
+            #no duplicates
+            if not (key in labels_to_plot and x_variable in x_axis_to_plot):
+                labels_to_plot.append(key)
+                x_axis_to_plot.append(x_variable)
+                cooperation_plot.append(mean_coop)
 
-        index += 1
+            index += 1
     except Exception as E:
         print('Unavailable data for' + filename)
         print(E)
 
-plt.rc('axes', labelsize=13)
+plt.rc('axes', labelsize=16)
 
 plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
@@ -145,7 +146,7 @@ plt.title('')
 plt.ylim(0., 1.)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
-plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5)
+plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
 plt.savefig('cooperation_versus_b-per_occupation-async.png', dpi=400, bbox_inches='tight')
 
 plt.close()
