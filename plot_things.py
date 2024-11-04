@@ -127,7 +127,6 @@ for filename in glob.glob(path + 'T*.dat'):
 plt.style.use('seaborn-v0_8-ticks')
 
 mpl.rc('axes', labelsize = 16)
-mpl.rc('legend', labelsize = 16)
 
 plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
@@ -146,7 +145,7 @@ plt.title('')
 plt.ylim(0., 1.)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
-plt.legend(loc='upper left', ncol = 2, edgecolor = 'black', framealpha=0.5)
+plt.legend(loc='upper left', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
 plt.savefig('cooperation_versus_b-per_occupation-parallel.png', dpi=400, bbox_inches='tight')
 
 plt.close()
