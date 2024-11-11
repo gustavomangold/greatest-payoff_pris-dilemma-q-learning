@@ -19,11 +19,11 @@ const int NUM_CONF       = 1;
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
 const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: exact
-													5: 2C's  6: Stripes*/
+													5: 2C's  6: Stripes 7: fixed holes*/
 const double PROB_C	     = 0.5;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 20000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -37,9 +37,9 @@ const int    TOTALSTEPS  = 100000; //100000				      /*total number of generatio
 const int  C              =  1;
 const int  D              = -1; //#define D (-1)
 
-const int  COMPARE        = 0;
-const int  MOVE_VERTICAL        = 2;
-const int  MOVE_HORIZONTAL      = -2;
+const int  COMPARE         = 0;
+const int  MOVE_VERTICAL   = 2;
+const int  MOVE_HORIZONTAL = -2;
 
 #define NUM_STATES  	   2
 
@@ -157,7 +157,7 @@ unsigned long int set_gsl_rng(void)
 extern void simulation(void)
 {
 	int iconf, i, j, k, l, m;
-	static int ICONF=0;
+	static int ICONF = 0;
 
 	//double epsilon_test = 1.0;
 
@@ -267,23 +267,26 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 		// choose random direction
 		if (new_action_index == MOVE_HORIZONTALindex){
 		    i  = (int)((double)(NUM_NEIGH - 2) * sample_random);
-			if (i == 0){
-			    COUNT_LEFT += 1;
-			}
-			if (i == 1){
-			    COUNT_RIGHT += 1;
-			}
 		}
 		// will sample between 2 and 3, or top and down
 		else{
 		    sample_random = FRANDOM1;
 		    i  = ((int)((double)(NUM_NEIGH - 2) * sample_random)) + 2;
-			if (i == 2){
-			    COUNT_UP += 1;
-			}
-			if (i == 3){
-			    COUNT_DOWN += 1;
-			}
+		}
+
+		switch (i){
+    		case 0:
+    		    COUNT_LEFT += 1;
+                break;
+    		case 1:
+    		    COUNT_RIGHT += 1;
+                break;
+            case 2:
+                COUNT_UP += 1;
+				break;
+    		case 3:
+    		    COUNT_DOWN += 1;
+                break;
 		}
 
 		s2 = neigh[*s1][i];
@@ -297,11 +300,11 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 			payoff[*s1] = 0.0;
 
 			plot_list[s2]  = plot_list[*s1]; // Change plot_list
-			plot_list[*s1] = 0.0;
+			plot_list[*s1] = 0;
 
-			for(j=0; j<NUM_STATES;++j) // Change Q values
+			for(j = 0; j < NUM_STATES; ++j) // Change Q values
 			{
-				for(k=0; k<NUM_ACTIONS;++k)
+				for(k = 0; k<NUM_ACTIONS; ++k)
 				{
 					Q[s2][j][k] = Q[*s1][j][k];
 					Q[*s1][j][k] = 0.0;
@@ -576,7 +579,7 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 		} // if(s1!=0)
 	}
 
-	//printf("%d, %d\n %d %d \n\n", COUNT_LEFT, COUNT_RIGHT, COUNT_UP, COUNT_DOWN);
+	printf("%d, %d\n %d %d \n\n", COUNT_LEFT, COUNT_RIGHT, COUNT_UP, COUNT_DOWN);
 
 	for (i=num_empty_sites; i< L2; ++i)
 	{
@@ -712,6 +715,8 @@ void file_initialization(void)
 		case 5 : fprintf(freq, "2 C's\n");
 			break;
 		case 6 : fprintf(freq, "Stripes\n");
+		    break;
+		case 7 : fprintf(freq, "Fixed holes\n");
 		    break;
     }
 	fprintf(freq,"# Steps: Total = %5d\n",TOTALSTEPS);
@@ -917,6 +922,37 @@ void initial_state(int *s,  int lsize, int initialstate, double probc, double pr
                 		*(s+i) = -1;
                     }
                 }
+    break;
+    case 7:
+            for (i = 0; i < l2; ++i)
+      		{
+         			*(s+i) = 1;
+      		}
+            vazios = 0;
+            /*while (vazios < (int) NUM_DEFECTS)
+          	{
+          		i= (int) (FRANDOM1*l2);
+          		if (*(s+i)!=0)
+          			{
+          				*(s+i)=0;
+          				++vazios;
+          			}
+          	}*/
+          for (i = 0; i < l2; ++i)
+          	{
+          		if (*(s+i)!=0 && i > (l2 / 2))
+          		{
+              		*(s+i) = -1;
+                  }
+              }
+          for (i = 0; i < l2; ++i)
+          	{
+          		if ((i > (l2 / 2) - 500) && (i < (l2 / 2 + 500)))
+          		{
+              		*(s+i) = 0;
+                  }
+              }
+    break;
     }
 return;
 }
