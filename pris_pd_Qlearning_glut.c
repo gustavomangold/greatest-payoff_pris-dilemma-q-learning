@@ -23,7 +23,7 @@ const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: 
 const double PROB_C	     = 0.5;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 20000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -274,7 +274,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 		    i  = ((int)((double)(NUM_NEIGH - 2) * sample_random)) + 2;
 		}
 
-		switch (i){
+		/*switch (i){
     		case 0:
     		    COUNT_LEFT += 1;
                 break;
@@ -287,7 +287,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
     		case 3:
     		    COUNT_DOWN += 1;
                 break;
-		}
+		}*/
 
 		s2 = neigh[*s1][i];
 
@@ -424,7 +424,7 @@ double pd_payoff(int *s, int ss, int ii)
 /***************************************************************************
  *                           Random choice                                 *
  ***************************************************************************/
-void random_choice(int site, int *new_action, int *new_action_index)
+void random_choice(int *new_action, int *new_action_index)
 {
 	// Chooses an integer in [0, NUM_ACTIONS)
 
@@ -441,7 +441,7 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 	int i;
 
 	//randomly choose initial maximum value in case of ties
-	random_choice(chosen_site, maxQ_action, maxQ_ind);
+	random_choice(maxQ_action, maxQ_ind);
 	*maxQ = Q[chosen_site][*state_index][*maxQ_ind];
 
 	// now find maximum
@@ -526,22 +526,25 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 			double initial_payoff  = pd_payoff(s, initial_s, chosen_site);
 
 			if (FRANDOM1 < EPSILON) //random
-				random_choice(chosen_site, &new_action, &new_action_index);
-			else // greedy
+			    random_choice(&new_action, &new_action_index);
+			else //greedy
 				find_maximum_Q_value(chosen_site, &initial_s_index, &new_action, &new_action_index, &maxQ);
 
-			if ((new_action_index != MOVE_VERTICALindex) && (new_action_index != MOVE_HORIZONTALindex))
+			if ((new_action_index != MOVE_HORIZONTALindex) && (new_action_index != MOVE_VERTICALindex))
 			{
 				compare_payoff(payoff, s, &state_max, chosen_site, initial_payoff);
-				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
 
-			    final_payoff   = pd_payoff(s, state_max, chosen_site);
+				int max_state_index = (state_max == C ? Cindex : Dindex);
+
+				find_maximum_Q_value(chosen_site, &max_state_index, &future_action, &future_action_index, &new_maxQ);
+
+			    final_payoff = pd_payoff(s, state_max, chosen_site);
 
 				reward = final_payoff;
 
 				// Q[chosen_site][initial_s_index][new_action_index] = (1.- ALPHA)*Q[chosen_site][initial_s_index][new_action_index]  + ALPHA*(final_payoff + GAMMA*new_maxQ);
 				// This is equivalent to expression above:
-				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA*(reward + GAMMA*new_maxQ
+				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA * new_maxQ
 										- Q[chosen_site][initial_s_index][new_action_index]);
 
 				s[chosen_site]         = state_max;
@@ -570,7 +573,7 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
     				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
                     // update q-value referent to initial state, as the payoff came from the action taken in that state
-    				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA*new_maxQ
+    				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA * new_maxQ
     										- Q[chosen_site][initial_s_index][new_action_index]);
 
                     payoff[chosen_site] = reward;
@@ -579,7 +582,7 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 		} // if(s1!=0)
 	}
 
-	printf("%d, %d\n %d %d \n\n", COUNT_LEFT, COUNT_RIGHT, COUNT_UP, COUNT_DOWN);
+	//printf("%d, %d\n %d %d \n\n", COUNT_LEFT, COUNT_RIGHT, COUNT_UP, COUNT_DOWN);
 
 	for (i=num_empty_sites; i< L2; ++i)
 	{
@@ -759,20 +762,6 @@ void initialization(void)
 
 		plot_list[i] = s[i];
 
-		/*
-		if (s[neigh[i][0]] == 0){
-            HOLES_COUNT_LEFT += 1;
-		}
-		if (s[neigh[i][1]] == 0){
-            HOLES_COUNT_RIGHT += 1;
-		}
-		if (s[neigh[i][2]] == 0){
-            HOLES_COUNT_UP += 1;
-		}
-		if (s[neigh[i][3]] == 0){
-            HOLES_COUNT_DOWN += 1;
-		}*/
-
 		switch(s[i])
 		{
 			case C: ++num_c;
@@ -788,8 +777,6 @@ void initialization(void)
 		}
 	}
 	fflush(freq);
-
-	//printf("%d, %d\n %d %d \n\n", HOLES_COUNT_LEFT, HOLES_COUNT_RIGHT, HOLES_COUNT_UP, HOLES_COUNT_DOWN);
 
 #ifdef USEGFX
 	int syst_return;
