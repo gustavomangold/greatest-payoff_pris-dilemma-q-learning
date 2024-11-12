@@ -471,7 +471,9 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 			{
 
 				compare_payoff(payoff, s, &state_max, chosen_site, initial_payoff);
-				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
+				int max_state_index = (state_max == C ? Cindex : Dindex);
+
+				find_maximum_Q_value(chosen_site, &max_state_index, &future_action, &future_action_index, &new_maxQ);
 
 			    double final_payoff   = pd_payoff(s, state_max, chosen_site);
 
