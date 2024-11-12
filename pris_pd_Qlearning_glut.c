@@ -559,7 +559,9 @@ void update_strategies(int *stemp, int *actions, double *rewards)
                 s[state] = new_states[state];
             }
 
-    		find_maximum_Q_value(state, &state_max_payoff_update, &future_action, &future_action_index, &new_maxQ);
+            int max_state_index = (state_max_payoff_update == C ? Cindex : Dindex);
+
+			find_maximum_Q_value(state, &max_state_index, &future_action, &future_action_index, &new_maxQ);
 
     		Q[state][initial_s_index][new_action_index] +=  ALPHA * (rewards[state] + GAMMA*new_maxQ
           										- Q[state][initial_s_index][new_action_index]);
