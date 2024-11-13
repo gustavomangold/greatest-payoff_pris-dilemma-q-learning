@@ -37,23 +37,27 @@ const int    TOTALSTEPS  = 100000; //100000				      /*total number of generatio
 const int  C              =  1;
 const int  D              = -1; //#define D (-1)
 
-const int  COMPARE         = 0;
-const int  MOVE_VERTICAL   = 2;
-const int  MOVE_HORIZONTAL = -2;
+const int  COMPARE    = 0;
+const int  MOVE_LEFT  = 2;
+const int  MOVE_RIGHT = 3;
+const int  MOVE_UP    = 4;
+const int  MOVE_DOWN  = 5;
 
 #define NUM_STATES  	   2
 
 const int Dindex  		 = 0;
 const int Cindex  		 = 1;
 
-const int COMPAREindex   = 0;
-const int MOVE_VERTICALindex   = 1;
-const int MOVE_HORIZONTALindex = 2;
+const int COMPAREindex    = 0;
+const int MOVE_LEFTindex  = 1;
+const int MOVE_RIGHTindex = 2;
+const int MOVE_UPindex    = 3;
+const int MOVE_DOWNindex  = 4;
 
 const int STATES[NUM_STATES]   = {D, C};
 
-#define NUM_ACTIONS 3
-const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE_VERTICAL, MOVE_HORIZONTAL};
+#define NUM_ACTIONS 5
+const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
@@ -75,7 +79,7 @@ const int L2   = LSIZE * LSIZE;
 
 unsigned long  right[LL], left[LL], top[LL], down[LL], neigh[LL][NUM_NEIGH];
 unsigned long  num_empty_sites, empty_matrix[LL], which_empty[LL];
-int            s[LL], plot_list[LL];
+int            s[LL];
 double 		   payoff[LL];
 
 double		   Q[LL][NUM_STATES][NUM_ACTIONS];
@@ -114,7 +118,7 @@ gsl_rng * r;
 ***************************************************************************/
 void file_initialization(void);
 void initialization(void);
-void local_dynamics(int *s, double *payoff, int *plot_list, unsigned long *empty_matrix,unsigned long *which_emp);
+void local_dynamics(int *s, double *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
 void count_neighbours(int *s, int ii, int *nc, int *nd);
 void determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
 void initial_state(int *s, int lsize, int initialstate, double probc, double probd);
@@ -179,7 +183,7 @@ extern void simulation(void)
 					//epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
 					EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					//EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
-					local_dynamics(s, payoff, plot_list, empty_matrix, which_empty);
+					local_dynamics(s, payoff, empty_matrix, which_empty);
 
 					++numsteps;
 				}
@@ -255,7 +259,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 /***************************************************************************
  *                          Random Diffusion                               *
  ***************************************************************************/
- int rand_diffusion(int *s1, int *s, int *plot_list, unsigned long *empty_matrix,unsigned long *which_empty, int new_action_index)
+ int rand_diffusion(int *s1, int *s, unsigned long *empty_matrix,unsigned long *which_empty, int new_action_index)
 {
 	int    i, j, k, s2;
 	double sample_random = FRANDOM1;
@@ -263,18 +267,10 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 	if (sample_random < P_DIFFUSION)
     {
         sample_random = FRANDOM1;
-		// differentiante when action is taken, can only move in one general axis
-		// choose random direction
-		if (new_action_index == MOVE_HORIZONTALindex){
-		    i  = (int)((double)(NUM_NEIGH - 2) * sample_random);
-		}
-		// will sample between 2 and 3, or top and down
-		else{
-		    sample_random = FRANDOM1;
-		    i  = ((int)((double)(NUM_NEIGH - 2) * sample_random)) + 2;
-		}
+		// action indexes are defined to coincide with position in neighbourhood
+		i = new_action_index - 1;
 
-		/*switch (i){
+		/* switch (i){
     		case 0:
     		    COUNT_LEFT += 1;
                 break;
@@ -298,9 +294,6 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 
 			payoff[s2] = payoff[*s1]; // Change payoffs
 			payoff[*s1] = 0.0;
-
-			plot_list[s2]  = plot_list[*s1]; // Change plot_list
-			plot_list[*s1] = 0;
 
 			for(j = 0; j < NUM_STATES; ++j) // Change Q values
 			{
@@ -465,7 +458,7 @@ void save_snapshots(int step, int *s){
     char output_snaps_freq[200];
 	int i;
 
-	sprintf(output_snaps_freq, "data/move-different_directions-async/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_snaps_freq, "data/move-all-four-directions/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                                  step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                                  P_DIFFUSION, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
@@ -482,7 +475,7 @@ void save_snapshots(int step, int *s){
 /***************************************************************************
  *                           Local Dynamics                                *
  ***************************************************************************/
-void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empty_matrix, unsigned long *which_emp)
+void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
 {
 	int stemp[L2];
 	int i, j, chosen_index, chosen_site;
@@ -517,8 +510,6 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 
 		initial_s = s[chosen_site];
 
-		plot_list[chosen_site] = initial_s;
-
 		if  (initial_s != 0)
 		{
 			initial_s_index = (initial_s == C ? Cindex : Dindex);
@@ -530,7 +521,7 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 			else //greedy
 				find_maximum_Q_value(chosen_site, &initial_s_index, &new_action, &new_action_index, &maxQ);
 
-			if ((new_action_index != MOVE_HORIZONTALindex) && (new_action_index != MOVE_VERTICALindex))
+			if (new_action_index == COMPAREindex)
 			{
 				compare_payoff(payoff, s, &state_max, chosen_site, initial_payoff);
 
@@ -548,24 +539,16 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 										- Q[chosen_site][initial_s_index][new_action_index]);
 
 				s[chosen_site]         = state_max;
-				plot_list[chosen_site] = state_max;
 				payoff[chosen_site]    = final_payoff;
 
 			}
 			else // try to move
 			{
-				int moved = rand_diffusion(&chosen_site, s, plot_list, empty_matrix, which_empty, new_action_index);
+				int moved = rand_diffusion(&chosen_site, s, empty_matrix, which_empty, new_action_index);
 				// Chosen site possivelmente atualizado
 
 				if (moved)
 				{
-				    // update plot list
-				    if (new_action_index == MOVE_VERTICALindex){
-						plot_list[chosen_site] = MOVE_VERTICAL;
-					}
-					else{
-						plot_list[chosen_site] = MOVE_HORIZONTAL;
-					}
     				// play with new state
     				final_payoff  = pd_payoff(s, initial_s, chosen_site);
     				reward        = final_payoff;
@@ -677,13 +660,13 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/move-different_directions-async/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/move-all-four-directions/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                               P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
-	fprintf(freq,"# Move to horizontal or vertical directions, playing with compared payoff \n");//- V%s\n",VERSION);
+	fprintf(freq,"# Move to any direction, playing with compared payoff \n");//- V%s\n",VERSION);
 	fprintf(freq,"# Lattice: %d x %d = %d\n",LSIZE,LSIZE,L2);
 	fprintf(freq,"# Random seed: %ld\n",seed);
 	fprintf(freq,"# N_CONF = %d \n",NUM_CONF);
@@ -726,7 +709,7 @@ void file_initialization(void)
 
 	//fprintf(freq,"#t  f_c  f_d  f_ac  Qcc  Qcd Qdc Qdd P\n");
 
-	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdmv Qdmh Qcb Qcmv Qcmh\n");
+	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdml Qdmr Qdmu Qdmd Qcb Qcml Qcmr Qcmu Qcmd\n");
 
 	for (i=0;i<MEASURES;++i)
 	{
@@ -760,8 +743,6 @@ void initialization(void)
     {
 		payoff[i] = 0.0;
 
-		plot_list[i] = s[i];
-
 		switch(s[i])
 		{
 			case C: ++num_c;
@@ -780,7 +761,7 @@ void initialization(void)
 
 #ifdef USEGFX
 	int syst_return;
-	view2d(LSIZE, plot_list, numsteps, TOTALSTEPS, t, num_c, num_d, NUM_DEFECTS);
+	view2d(LSIZE, s, numsteps, TOTALSTEPS, t, num_c, num_d, NUM_DEFECTS);
 	syst_return = system("sleep 0.5");
 	if (syst_return == 1000)
 		printf("Uot!\n");
