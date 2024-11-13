@@ -14,7 +14,7 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 20;
+const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
@@ -34,10 +34,11 @@ const int    TOTALSTEPS  = 100000; //100000				      /*total number of generatio
 //#define SELF_INTERACTION
 //#define DIFFUSE
 
-const int  C              =  1;
-const int  D              = -1; //#define D (-1)
-const int  MOVE			  =  0;
-const int  COMPARE        =  2;
+const int  C               =  1;
+const int  D               = -1; //#define D (-1)
+const int  COMPARE         = 0;
+const int  MOVE_VERTICAL   = 2;
+const int  MOVE_HORIZONTAL = -2;
 
 #define NUM_STATES  	   2
 
@@ -45,12 +46,13 @@ const int Dindex  		 = 0;
 const int Cindex  		 = 1;
 
 const int COMPAREindex   = 0;
-const int MOVEindex      = 1;
+const int MOVE_VERTICALindex   = 1;
+const int MOVE_HORIZONTALindex = 2;
 
 const int STATES[NUM_STATES]   = {D, C};
 
-#define NUM_ACTIONS 	   2
-const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE};
+#define NUM_ACTIONS 	   3
+const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE_VERTICAL, MOVE_HORIZONTAL};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
@@ -223,8 +225,8 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 	for(i=0; i<L2; ++i)
 	{
 		neigh[i][0] = left[i];
-		neigh[i][1] = right[i];
-		neigh[i][2] = top[i];
+		neigh[i][2] = right[i];
+		neigh[i][1] = top[i];
 		neigh[i][3] = down[i];
 	}
 	return;
@@ -232,7 +234,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 /***************************************************************************
  *                          Random Diffusion                               *
  ***************************************************************************/
- int rand_diffusion(int *state, int *s, unsigned long *empty_matrix,unsigned long *which_empty)
+ int rand_diffusion(int *state, int *s, unsigned long *empty_matrix, unsigned long *which_empty, int new_action_index)
 {
 	int    i, j, k, s2;
 	double sample_random = FRANDOM1;
@@ -240,7 +242,15 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 	if (sample_random < P_DIFFUSION)
     {
 		sample_random = FRANDOM1;
-		i  = (int)((double)(NUM_NEIGH) * sample_random);  // choose random direction
+
+		if (new_action_index == MOVE_HORIZONTALindex){
+		    i  = (int)((double)(NUM_NEIGH - 2) * sample_random);
+		}
+		// will sample between 2 and 3, or top and down
+		else{
+		    i  = ((int)((double)(NUM_NEIGH) * sample_random)) % 2 + 2;
+		}
+
 		s2 = neigh[*state][i];
 
 		if (s[s2] == 0) // test if chosen direction is empty
@@ -474,7 +484,7 @@ void local_combat(int *s, double *payoff, int *actions, double *rewards)
 
 			actions[chosen_site] = new_action;
 
-			if (new_action_index != MOVEindex)
+			if ((new_action_index != MOVE_VERTICALindex) && (new_action_index != MOVE_HORIZONTALindex))
 			{
 			    final_payoff = pd_payoff(s, initial_s, chosen_site);
 				reward       = final_payoff;
@@ -484,7 +494,7 @@ void local_combat(int *s, double *payoff, int *actions, double *rewards)
 			}
 			else // try to move
 			{
-				int moved = rand_diffusion(&chosen_site, s, empty_matrix, which_empty);
+				int moved = rand_diffusion(&chosen_site, s, empty_matrix, which_empty, new_action_index);
 				// Chosen site possivelmente atualizado
 
 				if (moved)
@@ -550,7 +560,19 @@ void update_strategies(int *stemp, int *actions, double *rewards)
 
     		// after counting, update in parallel; also update q-table
     		initial_s_index  = (stemp[state] == C ? Cindex : Dindex);
-    		new_action_index = (actions[state] == MOVE ? MOVEindex : COMPAREindex);
+            new_action_index = -1;
+
+            switch (actions[state]){
+                case COMPARE:
+                    new_action_index = COMPAREindex;
+                    break;
+                case MOVE_HORIZONTAL:
+                    new_action_index = MOVE_HORIZONTALindex;
+                    break;
+                case MOVE_VERTICAL:
+                    new_action_index = MOVE_VERTICALindex;
+                    break;
+            }
 
             state_max_payoff_update = s[state];
 
@@ -668,7 +690,7 @@ void file_initialization(void)
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
-	fprintf(freq,"# Synchronous (parallel) update");//- V%s\n",VERSION);
+	fprintf(freq,"# Synchronous (parallel) update - move vertical or horizontal");//- V%s\n",VERSION);
 	fprintf(freq,"# Lattice: %d x %d = %d\n",LSIZE,LSIZE,L2);
 	fprintf(freq,"# Random seed: %ld\n",seed);
 	fprintf(freq,"# N_CONF = %d \n",NUM_CONF);
