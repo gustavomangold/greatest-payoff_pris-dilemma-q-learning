@@ -123,7 +123,7 @@ for filename in glob.glob(path + 'T*.dat'):
         print('Unavailable data for' + filename)
         print(E)
 
-plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
+#plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
 plt.style.use('seaborn-v0_8-ticks')
 

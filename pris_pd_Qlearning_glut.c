@@ -23,7 +23,7 @@ const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: 
 const double PROB_C	     = 0.5;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 20000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -66,7 +66,7 @@ const double  EPSILON_MIN = 0.15; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.0001;
 const double  ALPHA       = 0.7; //0.75;
-const double  GAMMA       = 0.1; //0.75;
+const double  GAMMA       = 0.75; //0.75;
 
 /***************************************************************************
 *                      Variable Declarations                               *
@@ -482,7 +482,10 @@ void local_dynamics (int *s, double *payoff, int *plot_list, unsigned long *empt
 			if ((new_action_index != MOVE_AS_Cindex) && (new_action_index != MOVE_AS_Dindex))
 			{
 				compare_payoff(payoff, s, &state_max, chosen_site, initial_payoff);
-				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
+
+				int max_state_index = (state_max == C ? Cindex : Dindex);
+
+				find_maximum_Q_value(chosen_site, &max_state_index, &future_action, &future_action_index, &new_maxQ);
 
 			    final_payoff   = pd_payoff(s, state_max, chosen_site);
 
