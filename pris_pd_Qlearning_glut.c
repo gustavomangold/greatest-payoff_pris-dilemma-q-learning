@@ -23,7 +23,7 @@ const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: 
 const double PROB_C	     = 0.50;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 5000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 20000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -323,6 +323,9 @@ void count_neighbours(int *s, int ii, int *nc, int *nd)
 	return pay;
 }*/
 
+/***************************************************************************
+ *                    Calculate Fermi Probability                          *
+ ***************************************************************************/
 double calculate_fermi_probability(int payoff_site, int payoff_neighbour){
     return 1. / (1. + exp(-(1. * payoff_neighbour - 1. * payoff_site)) / K_FERMI);
 }
@@ -450,7 +453,10 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 			if (new_action_index != MOVEindex)
 			{
 				update_fermi(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
-				find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
+
+				int max_state_index = (state_max == C ? Cindex : Dindex);
+
+				find_maximum_Q_value(chosen_site, &max_state_index, &future_action, &future_action_index, &new_maxQ);
 
 				double final_payoff   = pd_payoff(s, initial_s, chosen_site);
 
@@ -479,11 +485,9 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 
                     //update_fermi(payoff, s, &state_max, chosen_site, payoff[chosen_site]);
 
-    				//find_maximum_Q_value(chosen_site, &state_max, &future_action, &future_action_index, &new_maxQ);
+    				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
-                    s[chosen_site] = state_max;
-
-    				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA*new_maxQ
+    				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA * new_maxQ
     										- Q[chosen_site][initial_s_index][new_action_index] );
 
                     payoff[chosen_site] = reward;
