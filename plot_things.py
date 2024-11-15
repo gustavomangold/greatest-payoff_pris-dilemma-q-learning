@@ -26,7 +26,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     cbar = plt.colorbar()
     cbar.set_ticks(np.arange(round(min(z), 1), round(max(z), 1), .1))
 
-    plt.savefig('heatmap_coop_versus_prob-diff_and_alpha-share.png', dpi=400, bbox_inches='tight')
+    plt.savefig('heatmap_coop_versus_prob-diff-move-all-four-directions.png', dpi=400, bbox_inches='tight')
     plt.clf()
 
     return
@@ -63,13 +63,13 @@ def plot_data_values(filename, data, colnames, color, identifier: str):
     plt.cla()
     plt.close()
 
-path = './data/move_as_c_or_d-async/'
+path = './data/move-all-four-directions/'
 
 color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
 
 cooperation_dict = {}
 variance_dict    = {}
-colnames = ['t',  'f_c',  'f_d', 'r_m', 'Qdb',  'Qcb', 'Qdm', 'Qcm']
+colnames = ['t',  'f_c',  'f_d', 'f_ac', 'Qdb', 'Qdml', 'Qdmr', 'Qdmu', 'Qdmd', 'Qcb', 'Qcml', 'Qcmr', 'Qcmu', 'Qcmd']
 
 labels_to_plot = []
 x_axis_to_plot = []
@@ -105,7 +105,7 @@ for filename in glob.glob(path + 'T*.dat'):
 
         """if key <= 0.01:
             plot_data_values(filename, data, colnames, color, 'q-table')"""
-        plot_data_values(filename, data, colnames, color, 'cooperation')
+        #plot_data_values(filename, data, colnames, color, 'cooperation')
 
         if key in (cooperation_dict.keys()):
             cooperation_dict[key].append([x_variable, float(mean_coop)])
@@ -143,7 +143,7 @@ plt.ylim(0., 1.)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5)
-plt.savefig('cooperation_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
+plt.savefig('cooperation_versus_b-per_occupation-move-all-four-directions.png', dpi=400, bbox_inches='tight')
 
 plt.close()
 plt.clf()
@@ -165,7 +165,7 @@ plt.title('')
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$\sigma ^2$')
 #plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5)
-plt.savefig('variance_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
+plt.savefig('variance_versus_b-per_occupation-move-all-four-directions.png', dpi=400, bbox_inches='tight')
 
 """index = 0
 for filename in glob.glob(path + 'T*.dat'):
