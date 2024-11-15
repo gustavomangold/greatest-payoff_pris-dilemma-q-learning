@@ -14,7 +14,7 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 1;
+const int NUM_CONF       = 20;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
@@ -23,7 +23,7 @@ const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: 
 const double PROB_C	     = 0.50;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 20000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -56,15 +56,15 @@ const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
 double     P_DIFFUSION;
 
-const double K_FERMI = 0.1;
+const double K_FERMI = .1;
 
 /****** Q-Learning **********/
 double        EPSILON	  = 0.02; //1.0;
-const double  EPSILON_MIN = 0.02; //0.1;
+const double  EPSILON_MIN = 0.15; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.02;
 const double  ALPHA       = 0.8; //0.75;
-const double  GAMMA       = 0.8; //0.75;
+const double  GAMMA       = 0.75; //0.75;
 
 /***************************************************************************
 *                      Variable Declarations                               *
@@ -588,6 +588,7 @@ void file_initialization(void)
 	fprintf(freq,"# Prob diffusion = %5.4f\n",P_DIFFUSION);
 
 	fprintf(freq,"# GAMMA   = %5.3f\n", GAMMA);
+	fprintf(freq,"# ALPHA   = %5.3f\n", ALPHA);
 	fprintf(freq,"# LAMBDA  = %5.3f\n", LAMBDA);
 	fprintf(freq,"# EPSILON = %5.3f\n", EPSILON);
 	fprintf(freq,"# EPSILON_MIN = %5.3f\n", EPSILON_MIN);
