@@ -24,7 +24,9 @@ def plot_heatmap(x_list, y_list, cooperation_list):
 
     plt.tricontourf(x, y, z, levels = 70, cmap = 'jet_r')
     cbar = plt.colorbar()
-    cbar.set_ticks(np.arange(round(min(z), 1), round(max(z), 1), .1))
+    cbar.set_ticks([.0, .15, .3, .45])
+    plt.yticks(np.arange(.0, 1.05, .1))
+    plt.ylim(.01, 1.)
 
     plt.savefig('heatmap_coop-async.png', dpi=400, bbox_inches='tight')
     plt.clf()
@@ -123,10 +125,10 @@ for filename in glob.glob(path + 'T*.dat'):
                 variance_dict[key] = [[x_variable, float(var_coop)]]
 
             #no duplicates
-
-            labels_to_plot.append(key)
-            x_axis_to_plot.append(x_variable)
-            cooperation_plot.append(mean_coop)
+            if key != 0:
+                labels_to_plot.append(key)
+                x_axis_to_plot.append(x_variable)
+                cooperation_plot.append(mean_coop)
 
             index += 1
     except Exception as E:
@@ -145,7 +147,7 @@ marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
 # tem que dar sorted com relaçao a coordenada x
 # senao o plot fica errado, fora de ordem as conexoes
 x_plot, y_plot = zip(*sorted(zip(x_static, y_static),key=lambda x: x[0]))
-plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = '#986F67', alpha=0.75)
+plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = '#986F67', alpha=0.75, linestyle='dotted')
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
@@ -170,7 +172,7 @@ plt.cla()
 color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
 marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
 
-plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = '#986F67', alpha=0.75)
+plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = '#986F67', alpha=0.75, linestyle='dotted')
 
 index = 0
 for key in sorted(cooperation_dict.keys()):

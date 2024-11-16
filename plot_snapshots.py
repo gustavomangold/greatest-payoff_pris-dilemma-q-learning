@@ -24,6 +24,9 @@ for filename in glob.glob(path + '*.dat'):
     # using the matshow() function
     axes.matshow(data, cmap=cmap, rasterized=True, vmin=-1, vmax=1)
 
+    axes.set(xticklabels=[])
+    axes.set(yticklabels=[])
+
     plt.savefig(path + filename.strip('.dat').strip(path) + '.png', dpi=400, bbox_inches='tight')
     plt.clf()
     plt.cla()

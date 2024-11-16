@@ -14,7 +14,7 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 5;
+const int NUM_CONF       = 20;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
@@ -23,7 +23,7 @@ const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: 
 const double PROB_C	     = 0.5;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
 const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
 
-const int    TOTALSTEPS  = 10000; //100000				      /*total number of generations (MCS)*/
+const int    TOTALSTEPS  = 100000; //100000				      /*total number of generations (MCS)*/
 
 #define MEASURES   1000
 #define	NUM_NEIGH  4
@@ -192,6 +192,8 @@ extern void simulation(void)
 				}
 			}
 		}
+
+		save_snapshots(numsteps, s);
 
 		for(i=0;i<MEASURES;++i)
 		{
@@ -550,7 +552,7 @@ int main(int argc, char **argv)
     #ifdef SAVESNAPSHOTS
    	if (argc != 5)
    	{
-  		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
+  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and SAVESNAPSHOTS\n");
   		exit(1);
    	}
    	else
