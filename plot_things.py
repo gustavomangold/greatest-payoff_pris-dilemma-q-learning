@@ -75,6 +75,10 @@ labels_to_plot = []
 x_axis_to_plot = []
 cooperation_plot = []
 
+
+x_static = []
+y_static = []
+
 index = 0
 for filename in glob.glob(path + 'T*.dat'):
     data = pd.read_csv(filename, comment = '#', delimiter = ' ', names = colnames, index_col = False)
@@ -107,6 +111,10 @@ for filename in glob.glob(path + 'T*.dat'):
             """if key <= 0.01:
                 plot_data_values(filename, data, colnames, color, 'q-table')"""
 
+            if key == 0.:
+                x_static.append(x_variable)
+                y_static.append(mean_coop)
+
             if key in (cooperation_dict.keys()):
                 cooperation_dict[key].append([x_variable, float(mean_coop)])
                 variance_dict[key].append([x_variable, float(var_coop)])
@@ -115,10 +123,10 @@ for filename in glob.glob(path + 'T*.dat'):
                 variance_dict[key] = [[x_variable, float(var_coop)]]
 
             #no duplicates
-            if not (key in labels_to_plot and x_variable in x_axis_to_plot):
-                labels_to_plot.append(key)
-                x_axis_to_plot.append(x_variable)
-                cooperation_plot.append(mean_coop)
+
+            labels_to_plot.append(key)
+            x_axis_to_plot.append(x_variable)
+            cooperation_plot.append(mean_coop)
 
             index += 1
     except Exception as E:
@@ -132,6 +140,12 @@ plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 plt.style.use('seaborn-v0_8-ticks')
 
 marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
+
+#codigo horrivel, mas funciona
+# tem que dar sorted com relaçao a coordenada x
+# senao o plot fica errado, fora de ordem as conexoes
+x_plot, y_plot = zip(*sorted(zip(x_static, y_static),key=lambda x: x[0]))
+plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = '#986F67', alpha=0.75)
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
@@ -148,6 +162,31 @@ plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
 plt.savefig('cooperation_versus_b-per_occupation-async.png', dpi=400, bbox_inches='tight')
+
+plt.close()
+plt.clf()
+plt.cla()
+
+color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
+marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
+
+plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = '#986F67', alpha=0.75)
+
+index = 0
+for key in sorted(cooperation_dict.keys()):
+    if key in [0.01, 0.03, 0.05, 0.1, 0.5, 1.]:
+        color_both_plots = next(color)
+        plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
+            label = r'$p_d = $' + str(key), color = color_both_plots)
+        #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
+        index += 1
+
+plt.title('')
+plt.xlim(0.94, 1.)
+plt.xlabel(r'$\rho$')
+plt.ylabel(r'$f_c$')
+#plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
+plt.savefig('cooperation_versus_b-per_occupation-async-zoom.png', dpi=400, bbox_inches='tight')
 
 plt.close()
 plt.clf()
