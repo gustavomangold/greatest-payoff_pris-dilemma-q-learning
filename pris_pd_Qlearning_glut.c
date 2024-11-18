@@ -54,9 +54,8 @@ const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
-double     P_DIFFUSION;
-
-const double K_FERMI = .1;
+double P_DIFFUSION;
+double K_FERMI;
 
 /****** Q-Learning **********/
 double        EPSILON	  = 0.02; //1.0;
@@ -529,7 +528,7 @@ int main(int argc, char **argv)
 {
    	if (argc != 4)
    	{
-  		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
+  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and K_FERMI\n");
   		exit(1);
    	}
    	else
@@ -537,6 +536,7 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
+        K_FERMI     = atof(argv[4]);
    	}
 
 	seed = set_gsl_rng();	 //Start GSL Random number generator
