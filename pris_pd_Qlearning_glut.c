@@ -526,7 +526,7 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 ***************************************************************************/
 int main(int argc, char **argv)
 {
-   	if (argc != 4)
+   	if (argc != 5)
    	{
   		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and K_FERMI\n");
   		exit(1);
