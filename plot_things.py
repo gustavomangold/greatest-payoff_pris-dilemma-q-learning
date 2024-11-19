@@ -17,8 +17,8 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     y = np.array(y_list)
     z = np.array(cooperation_list)
 
-    plt.xlabel(r'$p_d$')
-    plt.ylabel(r'$\rho$')
+    plt.xlabel(r'$\rho$')
+    plt.ylabel(r'$p_d$')
 
     #plt.gca().invert_yaxis()
 
@@ -27,7 +27,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
 
     plt.tricontourf(x, y, z, levels = 70, cmap = 'jet_r')
     cbar = plt.colorbar()
-    cbar.set_ticks(np.arange(0, 1, 0.1))
+    cbar.set_ticks(np.arange(0, 1.01, 0.1))
 
     plt.savefig('heatmap_coop_versus_prob-diff-fermi.png', dpi=400, bbox_inches='tight')
     plt.clf()
