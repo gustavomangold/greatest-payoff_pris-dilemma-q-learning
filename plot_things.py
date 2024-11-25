@@ -123,11 +123,9 @@ for filename in glob.glob(path + 'T*.dat'):
 
 plt.rc('axes', labelsize=16)
 
-plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
+#plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
 plt.style.use('seaborn-v0_8-ticks')
-
-marker = itertools.cycle((',', 'P', 'p', '*', '.', 'X', 'P', 'p', 'o'))
 
 ###################
 ### normal plot ###
@@ -140,14 +138,20 @@ color_plots_static = '#EB6E14'
 x_plot, y_plot = zip(*sorted(zip(x_static, y_static),key=lambda x: x[0]))
 plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
 
-color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc", "#EC2913", "#d02f6a", "#e61976", "#ff1611"))
+marker = itertools.cycle((',', 'P', 'p', '*', '.', 'X', 'P', 'p', 'o'))
+color  = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#4AA6B5", "#335430", "#d02f6a", "#e61976", "#ff1611"))
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
     if key in [0.01, 0.05, 0.1, 0.5, 1.]:
+        size = 20
+        if key == 1.:
+            size = 10
+        if key == 0.1:
+            size = 30
         color_both_plots = next(color)
         plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
-            label = r'$p_d = $' + str(key), color = color_both_plots, s = 20)
+            label = r'$p_d = $' + str(key), color = color_both_plots, s = size)
         #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
         index += 1
 
