@@ -594,6 +594,7 @@ void file_initialization(void)
 	fprintf(freq,"# EPSILON_MIN = %5.3f\n", EPSILON_MIN);
 	fprintf(freq,"# NUM_STATES  = %d\n", NUM_STATES);
 	fprintf(freq,"# NUM_ACTIONS = %d\n", NUM_ACTIONS);
+	fprintf(freq,"# K_FERMI = %5.3f\n", K_FERMI);
 
 	fprintf(freq,"# Initial configuration: ");
 	switch (INITIALSTATE)
