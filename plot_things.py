@@ -77,7 +77,7 @@ labels_to_plot = []
 x_axis_to_plot = []
 cooperation_plot = []
 
-
+check_repeat_params = []
 x_static = []
 y_static = []
 
@@ -106,29 +106,32 @@ for filename in glob.glob(path + 'T*.dat'):
     plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')"""
     try:
         if (float(filename.split('T')[1][:4]) == 1.4):
-            x_variable  = float(filename.split('rho')[1][:4])
+            x_variable  = float(filename.split('rho')[1][:6])
             mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
             var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
             """if key <= 0.01:
                 plot_data_values(filename, data, colnames, color, 'q-table')"""
 
-            if key == 0.:
-                x_static.append(x_variable)
-                y_static.append(mean_coop)
+            if (not ([key, x_variable] in check_repeat_params)):
+                if key == 0.:
+                    x_static.append(x_variable)
+                    y_static.append(mean_coop)
 
-            if key in (cooperation_dict.keys()):
-                cooperation_dict[key].append([x_variable, float(mean_coop)])
-                variance_dict[key].append([x_variable, float(var_coop)])
-            else:
-                cooperation_dict[key] = [[x_variable, float(mean_coop)]]
-                variance_dict[key] = [[x_variable, float(var_coop)]]
+                if key in (cooperation_dict.keys()):
+                    cooperation_dict[key].append([x_variable, float(mean_coop)])
+                    variance_dict[key].append([x_variable, float(var_coop)])
+                else:
+                    cooperation_dict[key] = [[x_variable, float(mean_coop)]]
+                    variance_dict[key] = [[x_variable, float(var_coop)]]
 
-            #no duplicates
-            if key != 0:
-                labels_to_plot.append(key)
-                x_axis_to_plot.append(x_variable)
-                cooperation_plot.append(mean_coop)
+                #no duplicates
+                if key != 0:
+                    labels_to_plot.append(key)
+                    x_axis_to_plot.append(x_variable)
+                    cooperation_plot.append(mean_coop)
+
+                check_repeat_params.append([key, x_variable])
 
             index += 1
     except Exception as E:
@@ -141,7 +144,7 @@ plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
 plt.style.use('seaborn-v0_8-ticks')
 
-marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
+marker = itertools.cycle((',', 'P', 'p', '*', 'X', 'P', 'p', 'o'))
 
 #codigo horrivel, mas funciona
 # tem que dar sorted com relaçao a coordenada x
@@ -152,7 +155,7 @@ plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
-    if key in [0.01, 0.03, 0.05, 0.1, 0.5, 1.]:
+    if key in [0.01, 0.03, 0.05, 0.5, 1.]:
         color_both_plots = next(color)
         plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
             label = r'$p_d = $' + str(key), color = color_both_plots)
@@ -160,7 +163,8 @@ for key in sorted(cooperation_dict.keys()):
         index += 1
 
 plt.title('')
-plt.ylim(0., 1.)
+plt.ylim(-0.02, 1.)
+plt.xlim(0.075, 1.02)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
@@ -171,13 +175,13 @@ plt.clf()
 plt.cla()
 
 color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
-marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
+marker = itertools.cycle((',', 'P', 'p', '*', 'X', 'P', 'p', 'o'))
 
 plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
-    if key in [0.01, 0.03, 0.05, 0.1, 0.5, 1.]:
+    if key in [0.01, 0.03, 0.05, 0.5, 1.]:
         color_both_plots = next(color)
         plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
             label = r'$p_d = $' + str(key), color = color_both_plots)
@@ -185,7 +189,7 @@ for key in sorted(cooperation_dict.keys()):
         index += 1
 
 plt.title('')
-plt.xlim(0.94, 1.)
+plt.xlim(0.9495, 1.0005)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 #plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
@@ -196,7 +200,7 @@ plt.clf()
 plt.cla()
 
 color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
-marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
+marker = itertools.cycle((',', 'P', 'p', '*', 'X', 'P', 'p', 'o'))
 
 index = 0
 for key in sorted(variance_dict.keys()):
