@@ -69,8 +69,6 @@ def plot_data_values(filename, data, colnames, color, identifier: str):
 
 path = './data/fermi/'
 
-color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
-
 cooperation_dict = {}
 variance_dict    = {}
 colnames = ['t',  'f_c',  'f_d', 'r_m', 'Qdb',  'Qcb', 'Qdm', 'Qcm']
@@ -129,7 +127,7 @@ plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
 plt.style.use('seaborn-v0_8-ticks')
 
-marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
+marker = itertools.cycle((',', 'P', 'p', '*', '.', 'X', 'P', 'p', 'o'))
 
 ###################
 ### normal plot ###
@@ -142,6 +140,8 @@ color_plots_static = '#EB6E14'
 x_plot, y_plot = zip(*sorted(zip(x_static, y_static),key=lambda x: x[0]))
 plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
 
+color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc", "#EC2913", "#d02f6a", "#e61976", "#ff1611"))
+
 index = 0
 for key in sorted(cooperation_dict.keys()):
     if key in [0.01, 0.05, 0.1, 0.5, 1.]:
@@ -153,7 +153,7 @@ for key in sorted(cooperation_dict.keys()):
 
 plt.title('')
 plt.ylim(-0.01, 1.01)
-plt.xticks(np.arange(0.1, 1, 0.1))
+plt.xticks(np.arange(0.1, 1.001, 0.1))
 plt.xlim(0.07, 1.05)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
