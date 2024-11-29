@@ -339,7 +339,7 @@ void update_fermi(float *payoff, int *s, int *new_state, int chosen_site, float 
     //printf("%f \n", calculate_fermi_probability(payoff[chosen_site], payoff[neigh[chosen_site][neigh_site]]));
 
     if ((s[neigh[chosen_site][neigh_site]] != 0) && (calculate_fermi_probability(payoff[chosen_site],
-        payoff[neigh[chosen_site][neigh_site]]) > FRANDOM1)){
+        payoff[neigh[chosen_site][neigh_site]]) < FRANDOM1)){
         *new_state = s[neigh[chosen_site][neigh_site]];
         return;
     }
