@@ -55,6 +55,7 @@ const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE};
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
 double P_DIFFUSION;
+double NOISE;
 int    SNAPSHOT_TEMPORAL_DIFFERENCE;
 
 /****** Q-Learning **********/
@@ -334,16 +335,25 @@ void compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, dou
 
     *state_max = s[chosen_site];
 
-    //printf("%d, %f\n", *state_max, own_payoff);
-    for (int k = 0; k < NUM_NEIGH; ++k)
+    if (FRANDOM1 < NOISE) {
+	//int random_neigh = (int) (FRANDOM1 * NUM_NEIGH);
+	//if ((s[random_neigh] != 0) && (payoff[random_neigh] > max_payoff)) *state_max = s[random_neigh];
+	return;
+    } 
+    else{
+
+        //printf("%d, %f\n", *state_max, own_payoff);
+    
+	for (int k = 0; k < NUM_NEIGH; ++k)
 	{
 	    //printf("%d, %f, %f\n", s[neigh[chosen_site][k]], payoff[neigh[chosen_site][k]], max_payoff);
 	    if ((s[neigh[chosen_site][k]] != 0) && (payoff[neigh[chosen_site][k]] > max_payoff)){
 			*state_max = s[neigh[chosen_site][k]];
 			max_payoff = payoff[neigh[chosen_site][k]];
-		}
+	   	}
+        }
+
     }
-    //printf("%d\n\n", *state_max);
     return;
 }
 
@@ -415,7 +425,7 @@ void save_snapshots(int step, int *s){
     char output_snaps_freq[200];
 	int i;
 
-	sprintf(output_snaps_freq, "data/stochastic/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                                  step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                                  P_DIFFUSION, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
@@ -550,9 +560,9 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 int main(int argc, char **argv)
 {
     #ifdef SAVESNAPSHOTS
-   	if (argc != 5)
+   	if (argc != 6)
    	{
-  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and SAVESNAPSHOTS\n");
+  		printf("\nThe program must be called with 5 parameters, T, NUM_DEFECTS, P_DIFFUSION, NOISE and SAVESNAPSHOTS\n");
   		exit(1);
    	}
    	else
@@ -560,13 +570,14 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
+		NOISE       = atof(argv[4]);
 
-        SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[4]);
+        SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[5]);
    	}
     #else
-    if (argc != 4)
+    if (argc != 5)
    	{
-  		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
+  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and NOISE\n");
   		exit(1);
    	}
    	else
@@ -574,6 +585,7 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
+		NOISE       = atof(argv[4]);
    	}
     #endif
 
@@ -605,7 +617,7 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/stochastic/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/stochastic-choosing-the-best/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                               P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
