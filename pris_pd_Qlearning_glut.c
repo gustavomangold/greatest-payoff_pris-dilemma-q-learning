@@ -325,8 +325,8 @@ void count_neighbours(int *s, int ii, int *nc, int *nd)
 /***************************************************************************
  *                    Calculate Fermi Probability                          *
  ***************************************************************************/
-double calculate_fermi_probability(int payoff_site, int payoff_neighbour){
-    return 1. / (1. + exp(-(1. * payoff_neighbour - 1. * payoff_site)) / K_FERMI);
+double calculate_fermi_probability(float payoff_site, float payoff_neighbour){
+    return 1. / (1. + exp(-(payoff_neighbour - payoff_site)) / K_FERMI);
 }
 
 /***************************************************************************
@@ -337,9 +337,10 @@ void update_fermi(float *payoff, int *s, int *new_state, int chosen_site, float 
     int neigh_site = (int) (NUM_NEIGH * FRANDOM1);
 
     //printf("%f \n", calculate_fermi_probability(payoff[chosen_site], payoff[neigh[chosen_site][neigh_site]]));
-
+	calculate_fermi_probability(payoff[chosen_site],
+        payoff[neigh[chosen_site][neigh_site]]) 
     if ((s[neigh[chosen_site][neigh_site]] != 0) && (calculate_fermi_probability(payoff[chosen_site],
-        payoff[neigh[chosen_site][neigh_site]]) < FRANDOM1)){
+	payoff[neigh[chosen_site][neigh_site]]) < FRANDOM1)){
         *new_state = s[neigh[chosen_site][neigh_site]];
         return;
     }
