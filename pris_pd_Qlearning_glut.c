@@ -335,6 +335,8 @@ void compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, dou
 
     *state_max = s[chosen_site];
 
+    // if falls into noise, don't change state
+
     if (FRANDOM1 < NOISE) {
 	//int random_neigh = (int) (FRANDOM1 * NUM_NEIGH);
 	//if ((s[random_neigh] != 0) && (payoff[random_neigh] > max_payoff)) *state_max = s[random_neigh];
