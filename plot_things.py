@@ -28,7 +28,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     plt.yticks(np.arange(.0, 1.05, .1))
     plt.ylim(.01, 1.)
 
-    plt.savefig('heatmap_coop-async.png', dpi=400, bbox_inches='tight')
+    plt.savefig('heatmap_coop-async-stochastic.png', dpi=400, bbox_inches='tight')
     plt.clf()
 
     return
@@ -64,8 +64,7 @@ def plot_data_values(filename, data, colnames, color, identifier: str):
     plt.clf()
     plt.cla()
     plt.close()
-
-path = './data/stochastic/'
+path = './data/stochastic-choosing-the-best/'
 
 cooperation_dict = {}
 variance_dict    = {}
@@ -172,7 +171,7 @@ plt.xlim(0.075, 1.02)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
-plt.savefig('cooperation_versus_b-per_occupation-async.png', dpi=400, bbox_inches='tight')
+plt.savefig('cooperation_versus_b-per_occupation-async-stochastic.png', dpi=400, bbox_inches='tight')
 
 plt.close()
 plt.clf()
@@ -202,7 +201,7 @@ plt.xlim(0.9495, 1.0005)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 #plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
-plt.savefig('cooperation_versus_b-per_occupation-async-zoom.png', dpi=400, bbox_inches='tight')
+plt.savefig('cooperation_versus_b-per_occupation-async-zoom-stochastic.png', dpi=400, bbox_inches='tight')
 
 plt.close()
 plt.clf()
@@ -224,7 +223,7 @@ plt.title('')
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$\sigma ^2$')
 #plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5)
-plt.savefig('variance_versus_b-per_occupation-async.png', dpi=400, bbox_inches='tight')
+plt.savefig('variance_versus_b-per_occupation-async-stochastic.png', dpi=400, bbox_inches='tight')
 
 """index = 0
 for filename in glob.glob(path + 'T*.dat'):
