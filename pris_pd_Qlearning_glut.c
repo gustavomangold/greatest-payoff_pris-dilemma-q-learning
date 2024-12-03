@@ -645,7 +645,12 @@ void file_initialization(void)
 	fprintf(freq,"# EPSILON = %5.3f\n", EPSILON);
 	fprintf(freq,"# EPSILON_MIN = %5.3f\n", EPSILON_MIN);
 	fprintf(freq,"# NUM_STATES  = %d\n", NUM_STATES);
-	fprintf(freq,"# NUM_ACTIONS = %d\n", NUM_ACTIONS);
+	fprintf(freq,"# NUM_ACTIONS = %d\n", NUM_ACTIONS);	
+	fprintf(freq,"# NOISE = %5.3f\n", NOISE);	
+	
+	fprintf(freq,"# = %d\n", NUM_ACTIONS);
+	
+	fprintf(freq,"# = %d\n", NUM_ACTIONS);
 
 	fprintf(freq,"# Initial configuration: ");
 	switch (INITIALSTATE)
