@@ -193,9 +193,9 @@ extern void simulation(void)
 				}
 			}
 		}
-
-		save_snapshots(numsteps, s);
-
+		#ifdef SAVESNAPSHOTS
+			save_snapshots(numsteps, s);
+		#endif
 		for(i=0;i<MEASURES;++i)
 		{
 			num_c_ave[i]  /= NUM_CONF;
