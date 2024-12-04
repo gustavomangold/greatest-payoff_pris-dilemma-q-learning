@@ -1,7 +1,7 @@
 #!/bin/bash
 LC_NUMERIC="en_US.UTF-8"
 
-for defects in $(seq 0 250 9000)
+for defects in $(seq 3000 250 5500)
 do
         for noise in 0 .01 .02 .03 .04 .05 .06 .07 .08 .09 .1 
 
