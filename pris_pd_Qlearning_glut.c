@@ -648,10 +648,6 @@ void file_initialization(void)
 	fprintf(freq,"# NUM_ACTIONS = %d\n", NUM_ACTIONS);	
 	fprintf(freq,"# NOISE = %5.3f\n", NOISE);	
 	
-	fprintf(freq,"# = %d\n", NUM_ACTIONS);
-	
-	fprintf(freq,"# = %d\n", NUM_ACTIONS);
-
 	fprintf(freq,"# Initial configuration: ");
 	switch (INITIALSTATE)
     {
