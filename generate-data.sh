@@ -1,13 +1,21 @@
 #!/bin/bash
 LC_NUMERIC="en_US.UTF-8"
 
-for defects in $(seq 0 50 9000)
+for defects in $(seq 0 250 9000)
 do
-        for mobility in 0
+        for noise in 0 .01 .02 .03 .04 .05 .06 .07 .08 .09 .1 
 
         do
-                echo "1.4 $defects $mobility"
-                ./pris_pd_Qlearning_glut 1.4 $defects $mobility &
+                echo "1.4 $defects 0.01 $noise"
+                ./pris_pd_Qlearning_glut 1.4 $defects .01 $noise &
+        done
+        wait
+        
+	for noise in 0 .12 .14 .16 .18 .2 .25 .3 .4 .5 .6 
+
+        do
+                echo "1.4 $defects 0.01 $noise"
+                ./pris_pd_Qlearning_glut 1.4 $defects .01 $noise &
         done
         wait
 done
