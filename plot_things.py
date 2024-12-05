@@ -197,7 +197,7 @@ for key in sorted(cooperation_dict.keys()):
         index += 1
 
 plt.title('')
-plt.xlim(0.9495, 1.0005)
+plt.xlim(0.9745, 1.0005)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 #plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
