@@ -340,6 +340,9 @@ void compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, dou
     if (FRANDOM1 < NOISE) {
 	//int random_neigh = (int) (FRANDOM1 * NUM_NEIGH);
 	//if ((s[random_neigh] != 0) && (payoff[random_neigh] > max_payoff)) *state_max = s[random_neigh];
+	int state_max_index = (int) (FRANDOM1 * NUM_STATES);
+	*state_max = STATES[state_max_index];
+
 	return;
     } 
     else{
@@ -427,7 +430,7 @@ void save_snapshots(int step, int *s){
     char output_snaps_freq[200];
 	int i;
 
-	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_NOISE%.5f_CONF_%d_%ld_prof.dat",
+	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best-new/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_NOISE%.5f_CONF_%d_%ld_prof.dat",
                                  step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                                  P_DIFFUSION, NOISE, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
@@ -619,7 +622,7 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/stochastic-choosing-the-best/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_NOISE%.5f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/stochastic-choosing-the-best-new/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_NOISE%.5f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                               P_DIFFUSION, NOISE, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
