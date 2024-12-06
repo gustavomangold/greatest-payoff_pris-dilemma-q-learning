@@ -28,7 +28,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     plt.yticks(np.arange(.0, 1.05, .1))
     plt.ylim(.01, 1.)
 
-    plt.savefig('heatmap_coop-async-stochastic.png', dpi=400, bbox_inches='tight')
+    plt.savefig('heatmap_coop-async-two_actions.png', dpi=400, bbox_inches='tight')
     plt.clf()
 
     return
@@ -64,11 +64,11 @@ def plot_data_values(filename, data, colnames, color, identifier: str):
     plt.clf()
     plt.cla()
     plt.close()
-path = './data/stochastic-choosing-the-best/'
+path = './data/two-actions-sctb-c-or-d/'
 
 cooperation_dict = {}
 variance_dict    = {}
-colnames = ['t',  'f_c',  'f_d', 'r_m', 'Qdb',  'Qcb', 'Qdm', 'Qcm']
+colnames = ['t',  'f_c',  'f_d', 'r_m', 'Qdb', 'Qdm', 'Qdc', 'Qdd', 'Qcb', 'Qcm', 'Qcc', 'Qcd']
 
 labels_to_plot = []
 x_axis_to_plot = []
@@ -137,7 +137,7 @@ for filename in glob.glob(path + 'T*.dat'):
 
 plt.rc('axes', labelsize=16)
 
-plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
+#plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
 plt.style.use('seaborn-v0_8-ticks')
 
@@ -190,7 +190,7 @@ ax2.set_ylim(.0, .4)
 ax1.set_xlabel(r'$\rho$')
 ax1.set_ylabel(r'$f_c$')
 ax1.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
-plt.savefig('cooperation_versus_b-per_occupation-async-stochastic.png', dpi=400, bbox_inches='tight')
+plt.savefig('cooperation_versus_b-per_occupation-async-two_actions.png', dpi=400, bbox_inches='tight')
 
 plt.close()
 plt.clf()
@@ -220,7 +220,7 @@ plt.xlim(0.9745, 1.0005)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 #plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
-plt.savefig('cooperation_versus_b-per_occupation-async-zoom-stochastic.png', dpi=400, bbox_inches='tight')
+plt.savefig('cooperation_versus_b-per_occupation-async-zoom-two_actions.png', dpi=400, bbox_inches='tight')
 
 plt.close()
 plt.clf()
