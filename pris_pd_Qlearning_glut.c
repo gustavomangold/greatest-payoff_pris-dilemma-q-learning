@@ -36,21 +36,25 @@ const int    TOTALSTEPS  = 100000; //100000				      /*total number of generatio
 
 const int  C              =  1;
 const int  D              = -1; //#define D (-1)
-const int  MOVE			  =  0;
-const int  COMPARE        =  2;
+const int  MOVE		  =  0;
+const int  COMPARE        = 2;
+const int  CHOOSEC        = 3;
+const int  CHOOSED        = 4;
 
 #define NUM_STATES  	   2
 
-const int Dindex  		 = 0;
-const int Cindex  		 = 1;
+const int Dindex	 = 0;
+const int Cindex  	 = 1;
 
 const int COMPAREindex   = 0;
 const int MOVEindex      = 1;
+const int CHOOSECindex   = 2;
+const int CHOOSEDindex   = 3;
 
 const int STATES[NUM_STATES]   = {D, C};
 
-#define NUM_ACTIONS 	   2
-const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE};
+#define NUM_ACTIONS 	   4
+const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE, C, D};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
@@ -331,32 +335,21 @@ void count_neighbours(int *s, int ii, int *nc, int *nd)
  ***************************************************************************/
 void compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, double own_payoff)
 {
-    double max_payoff = own_payoff;
+	double max_payoff = own_payoff;
 
-    *state_max = s[chosen_site];
+	*state_max = s[chosen_site];
 
-    // if falls into noise, don't change state
+	//printf("%d, %f\n", *state_max, own_payoff);
 
-    if (FRANDOM1 < NOISE) {
-	//int random_neigh = (int) (FRANDOM1 * NUM_NEIGH);
-	//if ((s[random_neigh] != 0) && (payoff[random_neigh] > max_payoff)) *state_max = s[random_neigh];
-	return;
-    } 
-    else{
-
-        //printf("%d, %f\n", *state_max, own_payoff);
-    
 	for (int k = 0; k < NUM_NEIGH; ++k)
 	{
 	    //printf("%d, %f, %f\n", s[neigh[chosen_site][k]], payoff[neigh[chosen_site][k]], max_payoff);
 	    if ((s[neigh[chosen_site][k]] != 0) && (payoff[neigh[chosen_site][k]] > max_payoff)){
 			*state_max = s[neigh[chosen_site][k]];
 			max_payoff = payoff[neigh[chosen_site][k]];
-	   	}
-        }
-
-    }
-    return;
+		}
+	}
+	return;
 }
 
 /***************************************************************************
@@ -427,9 +420,9 @@ void save_snapshots(int step, int *s){
     char output_snaps_freq[200];
 	int i;
 
-	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_NOISE%.5f_CONF_%d_%ld_prof.dat",
+	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                                  step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
-                                 P_DIFFUSION, NOISE, NUM_CONF, seed);
+                                 P_DIFFUSION, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
 
 	for (i = 0; i < (L2-1); ++i){
@@ -483,13 +476,21 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 
 			if (new_action_index != MOVEindex)
 			{
-
-				compare_payoff(payoff, s, &state_max, chosen_site, initial_payoff);
+				if (new_action_index == COMPAREindex){
+					compare_payoff(payoff, s, &state_max, chosen_site, initial_payoff);
+				}
+				else if (new_action_index == CHOOSECindex){
+					state_max = C;
+				}
+				else{
+					state_max = D;
+				}
+				
 				int max_state_index = (state_max == C ? Cindex : Dindex);
 
 				find_maximum_Q_value(chosen_site, &max_state_index, &future_action, &future_action_index, &new_maxQ);
 
-			    double final_payoff   = pd_payoff(s, state_max, chosen_site);
+				double final_payoff   = pd_payoff(s, state_max, chosen_site);
 
 				reward = final_payoff;
 
@@ -562,9 +563,9 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 int main(int argc, char **argv)
 {
     #ifdef SAVESNAPSHOTS
-   	if (argc != 6)
+   	if (argc != 5)
    	{
-  		printf("\nThe program must be called with 5 parameters, T, NUM_DEFECTS, P_DIFFUSION, NOISE and SAVESNAPSHOTS\n");
+  		printf("\nThe program must be called with 5 parameters, T, NUM_DEFECTS, P_DIFFUSION and SAVESNAPSHOTS\n");
   		exit(1);
    	}
    	else
@@ -572,14 +573,13 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
-		NOISE       = atof(argv[4]);
 
         SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[5]);
    	}
     #else
-    if (argc != 5)
+    if (argc != 4)
    	{
-  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and NOISE\n");
+  		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION \n");
   		exit(1);
    	}
    	else
@@ -587,7 +587,6 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
-		NOISE       = atof(argv[4]);
    	}
     #endif
 
@@ -619,9 +618,9 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/stochastic-choosing-the-best/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_NOISE%.5f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/stochastic-choosing-the-best/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
-                              P_DIFFUSION, NOISE, NUM_CONF, seed);
+                              P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
@@ -646,7 +645,6 @@ void file_initialization(void)
 	fprintf(freq,"# EPSILON_MIN = %5.3f\n", EPSILON_MIN);
 	fprintf(freq,"# NUM_STATES  = %d\n", NUM_STATES);
 	fprintf(freq,"# NUM_ACTIONS = %d\n", NUM_ACTIONS);	
-	fprintf(freq,"# NOISE = %5.3f\n", NOISE);	
 	
 	fprintf(freq,"# Initial configuration: ");
 	switch (INITIALSTATE)
@@ -668,7 +666,7 @@ void file_initialization(void)
 
 	//fprintf(freq,"#t  f_c  f_d  f_ac  Qcc  Qcd Qdc Qdd P\n");
 
-	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdm Qcb Qcm\n");
+	fprintf(freq,"#t  f_c  f_d  f_ac  Qdb Qdm Qdc Qdd Qcb Qcm Qcc Qcd\n");
 
 	for (i=0;i<MEASURES;++i)
 	{
