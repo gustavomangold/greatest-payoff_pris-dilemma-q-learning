@@ -28,14 +28,14 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     plt.yticks(np.arange(.0, 1.05, .1))
     plt.ylim(.01, 1.)
 
-    plt.savefig('heatmap_coop-async-stochastic.png', dpi=400, bbox_inches='tight')
+    plt.savefig('heatmap_coop-async-stochastic-and-mantain.png', dpi=400, bbox_inches='tight')
     plt.clf()
 
     return
 
 def plot_separate_column(colnames, color):
     for column in colnames[1:]:
-        if column[2] == 'b':
+        if column[1] == 'c':
             plt.plot(data[['t']].to_numpy(), data[[column]].to_numpy(),
                 color = next(color), label = r'$Q_{{{}}}$'.format(column[1:]))
     plt.legend(loc = 'best')
@@ -43,7 +43,7 @@ def plot_separate_column(colnames, color):
     plt.close()
 
     for column in colnames[1:]:
-        if column[2] == 'm':
+        if column[1] == 'd':
             plt.plot(data[['t']].to_numpy(), data[[column]].to_numpy(),
                 color = next(color), label = r'$Q_{{{}}}$'.format(column[1:]))
     plt.legend()
@@ -64,11 +64,11 @@ def plot_data_values(filename, data, colnames, color, identifier: str):
     plt.clf()
     plt.cla()
     plt.close()
-path = './data/stochastic-choosing-the-best/'
+path = './data/stochastic-choosing-the-best-and-mantain/'
 
 cooperation_dict = {}
 variance_dict    = {}
-colnames = ['t',  'f_c',  'f_d', 'r_m', 'Qdb',  'Qcb', 'Qdm', 'Qcm']
+colnames = ['t',  'f_c',  'f_d', 'r_m', 'Qdb',  'Qds', 'Qdm', 'Qcb', 'Qcs',  'Qcm']
 
 labels_to_plot = []
 x_axis_to_plot = []
@@ -78,6 +78,7 @@ check_repeat_params = []
 x_static = []
 y_static = []
 
+color  = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#4AA6B5", "#335430", "#d02f6a", "#e61976", "#ff1611"))
 index = 0
 for filename in glob.glob(path + 'T*.dat'):
     data = pd.read_csv(filename, comment = '#', delimiter = ' ', names = colnames, index_col = False)
@@ -86,13 +87,9 @@ for filename in glob.glob(path + 'T*.dat'):
 
     data['mean_coop'] = data['f_c'] / (data['f_d'] + data['f_c'])
 
-    """#plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')
-    #plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
+    plot_data_values(filename, data, colnames, color, 'cooperation')
+    plot_data_values(filename, data, colnames, color, 'q-table')
 
-    if 0.8 > key > 0.5:
-        plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
-        plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')
-"""
 
     """reward_series = data['r_m']
     plt.plot(np.array(data['t']), np.array(reward_series), label = key, color = next(color))
@@ -190,7 +187,7 @@ ax2.set_ylim(.0, .4)
 ax1.set_xlabel(r'$\rho$')
 ax1.set_ylabel(r'$f_c$')
 ax1.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
-plt.savefig('cooperation_versus_b-per_occupation-async-stochastic.png', dpi=400, bbox_inches='tight')
+plt.savefig('cooperation_versus_b-per_occupation-async-stochastic-and-mantain.png', dpi=400, bbox_inches='tight')
 
 plt.close()
 plt.clf()
@@ -220,7 +217,7 @@ plt.xlim(0.9745, 1.0005)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
 #plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
-plt.savefig('cooperation_versus_b-per_occupation-async-zoom-stochastic.png', dpi=400, bbox_inches='tight')
+plt.savefig('cooperation_versus_b-per_occupation-async-zoom-stochastic-and-mantain.png', dpi=400, bbox_inches='tight')
 
 plt.close()
 plt.clf()
@@ -242,7 +239,7 @@ plt.title('')
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$\sigma ^2$')
 #plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5)
-plt.savefig('variance_versus_b-per_occupation-async-stochastic.png', dpi=400, bbox_inches='tight')
+plt.savefig('variance_versus_b-per_occupation-async-stochastic-and-mantain.png', dpi=400, bbox_inches='tight')
 
 """index = 0
 for filename in glob.glob(path + 'T*.dat'):
