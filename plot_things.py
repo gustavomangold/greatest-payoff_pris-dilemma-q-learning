@@ -87,9 +87,6 @@ for filename in glob.glob(path + 'T*.dat'):
 
     data['mean_coop'] = data['f_c'] / (data['f_d'] + data['f_c'])
 
-    plot_data_values(filename, data, colnames, color, 'cooperation')
-    plot_data_values(filename, data, colnames, color, 'q-table')
-
 
     """reward_series = data['r_m']
     plt.plot(np.array(data['t']), np.array(reward_series), label = key, color = next(color))
@@ -157,10 +154,10 @@ color_plots_static = '#EB6E14'
 x_plot, y_plot = zip(*sorted(zip(x_static, y_static),key=lambda x: x[0]))
 ax1.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
 
-left, bottom, width, height = [0.2, 0.65, 0.2, 0.2]
-ax2 = fig.add_axes([left, bottom, width, height])
+#left, bottom, width, height = [0.2, 0.65, 0.2, 0.2]
+#ax2 = fig.add_axes([left, bottom, width, height])
 
-ax2.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
+#ax2.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
@@ -174,19 +171,19 @@ for key in sorted(cooperation_dict.keys()):
         iteration_marker = next(marker)
         ax1.scatter(*zip(*cooperation_dict[key]),  marker = iteration_marker, linestyle='', label = r'$p_d = $' + str(key), color = color_both_plots, s = size)
         
-        ax2.scatter(*zip(*cooperation_dict[key]),  marker = iteration_marker, linestyle='', label = r'$p_d = $' + str(key), color = color_both_plots, s = size)
+        #ax2.scatter(*zip(*cooperation_dict[key]),  marker = iteration_marker, linestyle='', label = r'$p_d = $' + str(key), color = color_both_plots, s = size)
         
         #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
         index += 1
 
 plt.title('')
-ax1.set_ylim(-0.02, 1.)
+ax1.set_ylim(-0.02, 1.04)
 ax1.set_xlim(0.075, 1.01)
-ax2.set_xlim(0.9745, 1.001)
-ax2.set_ylim(.0, .4)
+#ax2.set_xlim(0.9745, 1.001)
+#ax2.set_ylim(.0, .4)
 ax1.set_xlabel(r'$\rho$')
 ax1.set_ylabel(r'$f_c$')
-ax1.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
+ax1.legend(loc='upper right', ncol = 3, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
 plt.savefig('cooperation_versus_b-per_occupation-async-stochastic-and-mantain.png', dpi=400, bbox_inches='tight')
 
 plt.close()
