@@ -210,6 +210,7 @@ for key in sorted(cooperation_dict.keys()):
         index += 1
 
 plt.title('')
+plt.ylim(0.15, 0.7)
 plt.xlim(0.9745, 1.0005)
 plt.xlabel(r'$\rho$')
 plt.ylabel(r'$f_c$')
