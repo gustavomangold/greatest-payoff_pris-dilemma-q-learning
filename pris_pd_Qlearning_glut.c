@@ -110,7 +110,7 @@ void initial_state(int *s, int *actions, int lsize, int initialstate, double pro
 double pd_payoff(int *s, int ss, int ii);
 void   compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, double own_payoff);
 //void dynamics (int *s, double *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
-void   save_snapshots(int step, int *s);
+void   save_snapshots(int step, int *s, int identifier);
 
 
 unsigned long empty_site(unsigned long ll, int *nn,
@@ -195,7 +195,8 @@ extern void simulation(void)
 			}
 		}
 		#ifdef SAVESNAPSHOTS
-			save_snapshots(numsteps, actions);
+			save_snapshots(numsteps, actions, 1);
+			save_snapshots(numsteps, s, 0);
 		#endif
 		for(i=0;i<MEASURES;++i)
 		{
@@ -415,10 +416,11 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 /***************************************************************************
  *                             Save snapshots                              *
  ***************************************************************************/
-void save_snapshots(int step, int *s){
-    char output_snaps_freq[200];
+void save_snapshots(int step, int *s, int identifier){
+     // the identifier is 0 for states and 1 for actions
+     char output_snaps_freq[200];
 	int i;
-	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best-and-mantain/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat", step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), P_DIFFUSION, NUM_CONF, seed);
+	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best-and-mantain/snapshots/Snapshot(%d)Step%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat", identifier, step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), P_DIFFUSION, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
 
 	for (i = 0; i < (LL-1); ++i){
@@ -538,7 +540,10 @@ void local_dynamics (int *s, int *actions, double *payoff, unsigned long *empty_
 
 #ifdef SAVESNAPSHOTS
     if (numsteps % SNAPSHOT_TEMPORAL_DIFFERENCE == 0){
-        save_snapshots(numsteps, actions);
+        save_snapshots(numsteps, actions, 1);
+    }
+    if (numsteps % SNAPSHOT_TEMPORAL_DIFFERENCE == 0){
+	save_snapshots(numsteps, s, 0);
     }
 #endif
 
