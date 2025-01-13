@@ -36,9 +36,9 @@ const int    TOTALSTEPS  = 100000; //100000				      /*total number of generatio
 
 const int  C              =  1;
 const int  D              = -1; //#define D (-1)
-const int  MOVE			  =  0;
-const int  COMPARE        =  2;
-const int  STAY           =  3;
+const int  MOVE		  =  2;
+const int  COMPARE        =  3;
+const int  STAY           =  4;
 
 #define NUM_STATES  	   2
 
@@ -70,11 +70,11 @@ const double  GAMMA       = 0.8; //0.75;
 /***************************************************************************
 *                      Variable Declarations                               *
 ***************************************************************************/
-const int L2   = LSIZE * LSIZE;
 
 unsigned long  right[LL], left[LL], top[LL], down[LL], neigh[LL][NUM_NEIGH];
 unsigned long  num_empty_sites, empty_matrix[LL], which_empty[LL];
 int            s[LL];
+int            actions[LL];
 double 		   payoff[LL];
 
 double		   Q[LL][NUM_STATES][NUM_ACTIONS];
@@ -101,10 +101,10 @@ gsl_rng * r;
 ***************************************************************************/
 void file_initialization(void);
 void initialization(void);
-void local_dynamics(int *s, double *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
+void local_dynamics(int *s, int *actions, double *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
 void count_neighbours(int *s, int ii, int *nc, int *nd);
 void determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
-void initial_state(int *s, int lsize, int initialstate, double probc, double probd);
+void initial_state(int *s, int *actions, int lsize, int initialstate, double probc, double probd);
 
 //double calculate_payoff(int ss, int nc, int nd);
 double pd_payoff(int *s, int ss, int ii);
@@ -163,7 +163,7 @@ extern void simulation(void)
 					//epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
 					EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					//EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
-					local_dynamics(s, payoff, empty_matrix, which_empty);
+					local_dynamics(s, actions, payoff, empty_matrix, which_empty);
 
 					++numsteps;
 				}
@@ -171,14 +171,14 @@ extern void simulation(void)
 				num_d_ave[i]  += num_d;
 				num_cd_ave[i] += num_cd+num_dc;
 
-				for (k=num_empty_sites; k < L2; ++k)
+				for (k=num_empty_sites; k < LL; ++k)
 				{
 					for(l=0; l<NUM_STATES; ++l)
 						for(m=0; m<NUM_ACTIONS; ++m)
 							Q_ave[i][l][m] += Q[empty_matrix[k]][l][m];
 				}
 
-				if ((num_d == (L2-num_empty_sites)) || (num_c == (L2-num_empty_sites)))
+				if ((num_d == (LL-num_empty_sites)) || (num_c == (LL-num_empty_sites)))
 				{
 					for (j=i+1; j < MEASURES; ++j)
 					{
@@ -195,7 +195,7 @@ extern void simulation(void)
 			}
 		}
 		#ifdef SAVESNAPSHOTS
-			save_snapshots(numsteps, s);
+			save_snapshots(numsteps, actions);
 		#endif
 		for(i=0;i<MEASURES;++i)
 		{
@@ -225,7 +225,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 {
 	int i;
 
-	for(i=0; i<L2; ++i)
+	for(i=0; i<LL; ++i)
 	{
 		neigh[i][0] = left[i];
 		neigh[i][1] = right[i];
@@ -237,7 +237,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 /***************************************************************************
  *                          Random Diffusion                               *
  ***************************************************************************/
- int rand_diffusion(int *s1, int *s, unsigned long *empty_matrix,unsigned long *which_empty)
+ int rand_diffusion(int *s1, int *s, int *actions, unsigned long *empty_matrix,unsigned long *which_empty)
 {
 	int    i, j, k, s2;
 	double sample_random = FRANDOM1;
@@ -255,6 +255,9 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 
 			payoff[s2] = payoff[*s1]; // Change payoffs
 			payoff[*s1] = 0.0;
+	
+			actions[s2] = actions[*s1]; // Change payoffs
+			actions[*s1] = -1;
 
 			for(j=0; j<NUM_STATES;++j) // Change Q values
 			{
@@ -415,16 +418,13 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 void save_snapshots(int step, int *s){
     char output_snaps_freq[200];
 	int i;
-
-	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best-and-mantain/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
-                                 step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
-                                 P_DIFFUSION, NUM_CONF, seed);
+	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best-and-mantain/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat", step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), P_DIFFUSION, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
 
-	for (i = 0; i < (L2-1); ++i){
+	for (i = 0; i < (LL-1); ++i){
 	   fprintf(fconf,"%d,", s[i]);
 	}
-	fprintf(fconf,"%d", s[L2-1]);
+	fprintf(fconf,"%d", s[LL-1]);
 	fclose(fconf);
     return;
 }
@@ -432,9 +432,9 @@ void save_snapshots(int step, int *s){
 /***************************************************************************
  *                           Local Dynamics                                *
  ***************************************************************************/
-void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
+void local_dynamics (int *s, int *actions, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
 {
-	int stemp[L2];
+	int stemp[LL];
 	int i, j, chosen_index, chosen_site;
 	int initial_s_index, new_action_index;
 	int initial_s;
@@ -449,16 +449,15 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 	num_dc = 0;
 	num_d  = 0;
 
-	for (i=num_empty_sites; i < L2; ++i)
+	for (i=num_empty_sites; i < LL; ++i)
 		stemp[empty_matrix[i]] = s[empty_matrix[i]];
 
-	for (j=0; j < L2; ++j)
-    {
-		chosen_index = (int)(num_empty_sites + FRANDOM1*(L2-num_empty_sites));
+	for (j=0; j < LL; ++j)
+	{
+		chosen_index = (int)(num_empty_sites + FRANDOM1*(LL-num_empty_sites));
 		chosen_site  = empty_matrix[chosen_index];
 
 		initial_s = s[chosen_site];
-
 		if  (initial_s != 0)
 		{
 			initial_s_index = (initial_s == C ? Cindex : Dindex);
@@ -469,6 +468,8 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 				random_choice(chosen_site, &new_action, &new_action_index);
 			else // greedy
 				find_maximum_Q_value(chosen_site, &initial_s_index, &new_action, &new_action_index, &maxQ);
+			
+			actions[chosen_site] = new_action_index;
 
 			if (new_action_index != MOVEindex)
 			{
@@ -484,7 +485,7 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 				int max_state_index = (state_max == C ? Cindex : Dindex);
 				find_maximum_Q_value(chosen_site, &max_state_index, &future_action, &future_action_index, &new_maxQ);
 
-			    double final_payoff   = pd_payoff(s, state_max, chosen_site);
+				double final_payoff   = pd_payoff(s, state_max, chosen_site);
 
 				reward = final_payoff;
 
@@ -499,7 +500,7 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 			}
 			else // try to move
 			{
-				int moved = rand_diffusion(&chosen_site, s, empty_matrix, which_empty);
+				int moved = rand_diffusion(&chosen_site, s, actions, empty_matrix, which_empty);
 				// Chosen site possivelmente atualizado
 
 				if (moved)
@@ -513,33 +514,31 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
     				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA*new_maxQ
     										- Q[chosen_site][initial_s_index][new_action_index] );
 
-                    payoff[chosen_site] = reward;
+				payoff[chosen_site] = reward;
 				}
-
 			}
 		} // if(s1!=0)
 	}
-	for (i=num_empty_sites; i< L2; ++i)
+	for (i=num_empty_sites; i< LL; ++i)
 	{
 		int s1 = empty_matrix[i];
-
 		switch (s[s1])
 		{
 			case C: {
-						++num_c;
-						if  (stemp[s1] == D) ++num_dc;
-					 }	break;
+				++num_c;
+				if  (stemp[s1] == D) ++num_dc;
+			}	break;
 			case D: {
-						++num_d;
-						if  (stemp[s1] == C) ++num_cd;
+				++num_d;
+				if  (stemp[s1] == C) ++num_cd;
 
-					} break;
+			} break;
 		}
 	}
 
 #ifdef SAVESNAPSHOTS
     if (numsteps % SNAPSHOT_TEMPORAL_DIFFERENCE == 0){
-        save_snapshots(numsteps, s);
+        save_snapshots(numsteps, actions);
     }
 #endif
 
@@ -567,9 +566,8 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
-
-        SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[5]);
-   	}
+		SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[4]);
+	}
     #else
     if (argc != 4)
    	{
@@ -619,14 +617,14 @@ void file_initialization(void)
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
 	fprintf(freq,"# Stochastic version, playing with compared payoff \n");//- V%s\n",VERSION);
-	fprintf(freq,"# Lattice: %d x %d = %d\n",LSIZE,LSIZE,L2);
+	fprintf(freq,"# Lattice: %d x %d = %d\n",LSIZE,LSIZE,LL);
 	fprintf(freq,"# Random seed: %ld\n",seed);
 	fprintf(freq,"# N_CONF = %d \n",NUM_CONF);
 	fprintf(freq,"# TEMPTATION = %5.3f\n", TEMPTATION);
 	fprintf(freq,"# RR = %5.3f\n", RR);
 	fprintf(freq,"# SUCKER = %5.3f\n", SUCKER);
 
-	fprintf(freq,"# rho = %.4f\n",1.0-NUM_DEFECTS/((float)L2));
+	fprintf(freq,"# rho = %.4f\n",1.0-NUM_DEFECTS/((float)LL));
 	fprintf(freq,"# Num defects = %ld \n",NUM_DEFECTS);
 	fprintf(freq,"# Initial prob(c) = %5.4f\n",PROB_C);
 	fprintf(freq,"# Initial prob(d) = %5.4f\n",PROB_D);
@@ -686,13 +684,13 @@ void initialization(void)
 	num_d     = 0;
 	num_cd    = 0;
 
-	initial_state(s, LSIZE, INITIALSTATE, PROB_C, PROB_D);
+	initial_state(s, actions, LSIZE, INITIALSTATE, PROB_C, PROB_D);
 
-	num_empty_sites = empty_site(L2, s, empty_matrix, which_empty); //ja existia uma matriz which_empty
+	num_empty_sites = empty_site(LL, s, empty_matrix, which_empty); //ja existia uma matriz which_empty
 
-	for (i=0; i < L2; ++i)
-    {
-		payoff[i] = 0.0;
+	for (i=0; i < LL; ++i)
+	{
+		payoff[i]  = 0.0;
 
 		switch(s[i])
 		{
@@ -723,7 +721,7 @@ void initialization(void)
 /***********************************************************************
  *                            Initial State                             *
  ***********************************************************************/
-void initial_state(int *s,  int lsize, int initialstate, double probc, double probd)
+void initial_state(int *s, int *actions, int lsize, int initialstate, double probc, double probd)
 
 {
   int i, l2, vazios;
@@ -781,6 +779,7 @@ void initial_state(int *s,  int lsize, int initialstate, double probc, double pr
 			if (*(s+i)!=0)
 				{
 					*(s+i)=0;
+					*(actions+i)=-1;
 					++vazios;
 				}
 		}
