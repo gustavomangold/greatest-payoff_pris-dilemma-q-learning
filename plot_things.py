@@ -24,7 +24,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
 
     plt.tricontourf(x, y, z, levels = 70, cmap = 'jet_r')
     cbar = plt.colorbar()
-    cbar.set_ticks([.0, .15, .3, .45])
+    cbar.set_ticks([.0, .2, .4, .6, .8])
     plt.yticks(np.arange(.0, 1.05, .1))
     plt.ylim(.01, 1.)
 
