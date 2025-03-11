@@ -14,7 +14,7 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 20;
+const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
@@ -73,8 +73,8 @@ const int L2   = LSIZE * LSIZE;
 
 unsigned long  right[LL], left[LL], top[LL], down[LL], neigh[LL][NUM_NEIGH];
 unsigned long  num_empty_sites, empty_matrix[LL], which_empty[LL];
-int            s[LL];
-double 		   payoff[LL];
+int            s[LL], actions[LL];
+double 	       payoff[LL];
 
 double		   Q[LL][NUM_STATES][NUM_ACTIONS];
 
@@ -100,7 +100,7 @@ gsl_rng * r;
 ***************************************************************************/
 void file_initialization(void);
 void initialization(void);
-void local_dynamics(int *s, double *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
+void local_dynamics(int *s, int *actions, double *payoff, unsigned long *empty_matrix,unsigned long *which_emp);
 void count_neighbours(int *s, int ii, int *nc, int *nd);
 void determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
 void initial_state(int *s, int lsize, int initialstate, double probc, double probd);
@@ -109,7 +109,7 @@ void initial_state(int *s, int lsize, int initialstate, double probc, double pro
 double pd_payoff(int *s, int ss, int ii);
 void   compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, double own_payoff);
 //void dynamics (int *s, double *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
-void   save_snapshots(int step, int *s);
+void   save_snapshots(int step, int *s, int identifier);
 
 
 unsigned long empty_site(unsigned long ll, int *nn,
@@ -162,7 +162,7 @@ extern void simulation(void)
 					//epsilon_test = EPSILON * exp(-LAMBDA * numsteps);
 					EPSILON = EPSILON_MIN;//(epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					//EPSILON = (epsilon_test > EPSILON_MIN ? epsilon_test : EPSILON_MIN);
-					local_dynamics(s, payoff, empty_matrix, which_empty);
+					local_dynamics(s, actions, payoff, empty_matrix, which_empty);
 
 					++numsteps;
 				}
@@ -194,7 +194,8 @@ extern void simulation(void)
 			}
 		}
 		#ifdef SAVESNAPSHOTS
-			save_snapshots(numsteps, s);
+			save_snapshots(numsteps, s, 0);
+			save_snapshots(numsteps, actions, 1);
 		#endif
 		for(i=0;i<MEASURES;++i)
 		{
@@ -236,7 +237,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 /***************************************************************************
  *                          Random Diffusion                               *
  ***************************************************************************/
- int rand_diffusion(int *s1, int *s, unsigned long *empty_matrix,unsigned long *which_empty)
+ int rand_diffusion(int *s1, int *s, int *actions, unsigned long *empty_matrix,unsigned long *which_empty)
 {
 	int    i, j, k, s2;
 	double sample_random = FRANDOM1;
@@ -251,6 +252,9 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 		{
 			s[s2] = s[*s1]; // Change strategy
 			s[*s1] = 0;
+
+			actions[s2]  = actions[*s1]; // Change strategy
+			actions[*s1] = -1;
 
 			payoff[s2] = payoff[*s1]; // Change payoffs
 			payoff[*s1] = 0.0;
@@ -423,12 +427,11 @@ void find_maximum_Q_value(int chosen_site, int *state_index, int *maxQ_action, i
 /***************************************************************************
  *                             Save snapshots                              *
  ***************************************************************************/
-void save_snapshots(int step, int *s){
+void save_snapshots(int step, int *s, int identifier){
     char output_snaps_freq[200];
 	int i;
 
-	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_NOISE%.5f_CONF_%d_%ld_prof.dat",
-                                 step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
+	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best/snapshots/Snapshot(%d)Step%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_NOISE%.5f_CONF_%d_%ld_prof.dat", identifier, step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                                  P_DIFFUSION, NOISE, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
 
@@ -443,7 +446,7 @@ void save_snapshots(int step, int *s){
 /***************************************************************************
  *                           Local Dynamics                                *
  ***************************************************************************/
-void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
+void local_dynamics (int *s, int *actions, double *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
 {
 	int stemp[L2];
 	int i, j, chosen_index, chosen_site;
@@ -480,7 +483,7 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 				random_choice(chosen_site, &new_action, &new_action_index);
 			else // greedy
 				find_maximum_Q_value(chosen_site, &initial_s_index, &new_action, &new_action_index, &maxQ);
-
+			actions[chosen_site] = new_action_index;
 			if (new_action_index != MOVEindex)
 			{
 
@@ -504,7 +507,7 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 			}
 			else // try to move
 			{
-				int moved = rand_diffusion(&chosen_site, s, empty_matrix, which_empty);
+				int moved = rand_diffusion(&chosen_site, s, actions, empty_matrix, which_empty);
 				// Chosen site possivelmente atualizado
 
 				if (moved)
@@ -544,7 +547,8 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 
 #ifdef SAVESNAPSHOTS
     if (numsteps % SNAPSHOT_TEMPORAL_DIFFERENCE == 0){
-        save_snapshots(numsteps, s);
+        save_snapshots(numsteps, s, 0);
+        save_snapshots(numsteps, actions, 1);
     }
 #endif
 
@@ -701,7 +705,7 @@ void initialization(void)
 	for (i=0; i < L2; ++i)
     {
 		payoff[i] = 0.0;
-
+		actions[i] = -1;
 		switch(s[i])
 		{
 			case C: ++num_c;
