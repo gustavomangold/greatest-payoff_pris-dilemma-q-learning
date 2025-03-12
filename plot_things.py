@@ -22,7 +22,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
 
     #plt.gca().invert_yaxis()
 
-    plt.tricontourf(x, y, z, levels = 70, cmap = 'jet_r')
+    plt.tricontourf(x, y, z, levels = 120, cmap = 'jet_r')
     cbar = plt.colorbar()
     cbar.set_ticks([.0, .2, .4, .6, .8])
     plt.yticks(np.arange(.0, 1.05, .1))
