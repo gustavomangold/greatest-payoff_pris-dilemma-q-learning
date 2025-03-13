@@ -152,6 +152,20 @@ plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha
 marker = itertools.cycle((',', 'P', 'p', '*', '.', 'X', 'P', 'p', 'o'))
 color  = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#4AA6B5", "#335430", "#d02f6a", "#e61976", "#ff1611"))
 
+fig, ax1 = plt.subplots()
+
+#codigo horrivel, mas funciona
+# tem que dar sorted com relaçao a coordenada x
+# senao o plot fica errado, fora de ordem as conexoes
+color_plots_static = '#EB6E14'
+x_plot, y_plot = zip(*sorted(zip(x_static, y_static),key=lambda x: x[0]))
+ax1.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
+
+left, bottom, width, height = [0.57, 0.6, 0.3, 0.25]
+ax2 = fig.add_axes([left, bottom, width, height])
+
+ax2.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
+
 index = 0
 for key in sorted(cooperation_dict.keys()):
     if key in [0.01, 0.05, 0.1, 0.5, 1.]:
@@ -161,17 +175,25 @@ for key in sorted(cooperation_dict.keys()):
         if key == 0.1:
             size = 30
         color_both_plots = next(color)
-        plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
-            label = r'$p_d = $' + str(key), color = color_both_plots, s = size)
+        iteration_marker = next(marker)
+        ax1.scatter(*zip(*cooperation_dict[key]),  marker = iteration_marker, linestyle='', label = r'$p_d = $' + str(key), color = color_both_plots, s = size)
+        
+        ax2.scatter(*zip(*cooperation_dict[key]),  marker = iteration_marker, linestyle='', label = r'$p_d = $' + str(key), color = color_both_plots, s = size*0.6)
+        
         #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
         index += 1
 
 plt.title('')
-plt.ylim(-0.02, 1.)
-plt.xlim(0.075, 1.02)
-plt.xlabel(r'$\rho$')
-plt.ylabel(r'$f_c$')
-plt.legend(loc='best', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
+ax1.set_ylim(-0.02, 1.04)
+ax1.set_xlim(0.075, 1.01)
+ax2.set_xlim(0.95, 1.001)
+ax2.set_ylim(-.01, .5)
+ax2.set_yticks([.0, .25, .5])
+ax2.tick_params(axis = 'both', which = 'minor', labelsize = 8)
+ax2.tick_params(axis = 'both', which = 'major', labelsize = 8)
+ax1.set_xlabel(r'$\rho$')
+ax1.set_ylabel(r'$f_c$')
+ax1.legend(loc='upper left', ncol = 1, edgecolor = 'black', framealpha=0.5, prop={'size': 10})
 plt.savefig('cooperation_versus_b-per_occupation-async.png', dpi=400, bbox_inches='tight')
 
 plt.close()
