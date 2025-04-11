@@ -27,6 +27,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     cbar.set_ticks([.0, .15, .3, .45])
     plt.yticks(np.arange(.0, 1.05, .1))
     plt.ylim(.01, 1.)
+    plt.yscale('log')
 
     plt.savefig('heatmap_coop-async.png', dpi=400, bbox_inches='tight')
     plt.clf()
