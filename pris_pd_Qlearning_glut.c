@@ -14,7 +14,7 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 20;
+const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
@@ -563,7 +563,7 @@ int main(int argc, char **argv)
     #ifdef SAVESNAPSHOTS
    	if (argc != 5)
    	{
-  		printf("\nThe program must be called with 5 parameters, T, NUM_DEFECTS, P_DIFFUSION and SAVESNAPSHOTS\n");
+			printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and SAVESNAPSHOTS\n");
   		exit(1);
    	}
    	else
