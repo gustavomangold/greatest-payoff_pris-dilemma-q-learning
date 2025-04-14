@@ -5,6 +5,7 @@ import io
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import itertools
+from matplotlib.ticker import ScalarFormatter
 
 def plot_heatmap(x_list, y_list, cooperation_list):
     '''
@@ -17,16 +18,22 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     y = np.array(y_list)
     z = np.array(cooperation_list)
 
-    plt.xlabel(r'$\rho$')
-    plt.ylabel(r'$p_d$')
+    
+    fig, ax = plt.subplots()
 
+    ax.set_yscale('log')
+    ax.yaxis.set_major_formatter(ScalarFormatter())
+    ax.minorticks_off()
+
+    ax.set_xlabel(r'$\rho$')
+    ax.set_ylabel(r'$p_d$')
     #plt.gca().invert_yaxis()
 
     plt.tricontourf(x, y, z, levels = 120, cmap = 'jet_r')
     cbar = plt.colorbar()
     cbar.set_ticks([.0, .2, .4, .6, .8])
-    plt.yticks(np.arange(.0, 1.05, .1))
-    plt.ylim(.01, 1.)
+    ax.set_yticks([.01, .1, 1])
+    ax.set_ylim(.01, 1.)
 
     plt.savefig('heatmap_coop-async-stochastic-and-mantain.png', dpi=400, bbox_inches='tight')
     plt.clf()
