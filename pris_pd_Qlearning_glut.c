@@ -345,9 +345,7 @@ void compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, dou
 			*state_max = s[neigh[chosen_site][k]];
 			max_payoff = payoff[neigh[chosen_site][k]];
 		}
-}
-
-}
+	}
 return;
 }
 
