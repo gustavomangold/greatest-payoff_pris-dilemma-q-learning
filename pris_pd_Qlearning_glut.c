@@ -55,7 +55,6 @@ const int ACTIONS[NUM_ACTIONS] = {COMPARE, MOVE};
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
 double P_DIFFUSION;
-double NOISE;
 int    SNAPSHOT_TEMPORAL_DIFFERENCE;
 
 /****** Q-Learning **********/
@@ -339,28 +338,17 @@ void compare_payoff(double *payoff, int *s, int *state_max, int chosen_site, dou
 
     *state_max = s[chosen_site];
 
-    // if falls into noise, don't change state
-
-    if (FRANDOM1 < NOISE) {
-	//int random_neigh = (int) (FRANDOM1 * NUM_NEIGH);
-	//if ((s[random_neigh] != 0) && (payoff[random_neigh] > max_payoff)) *state_max = s[random_neigh];
-	return;
-    } 
-    else{
-
-        //printf("%d, %f\n", *state_max, own_payoff);
-    
 	for (int k = 0; k < NUM_NEIGH; ++k)
 	{
 	    //printf("%d, %f, %f\n", s[neigh[chosen_site][k]], payoff[neigh[chosen_site][k]], max_payoff);
 	    if ((s[neigh[chosen_site][k]] != 0) && (payoff[neigh[chosen_site][k]] > max_payoff)){
 			*state_max = s[neigh[chosen_site][k]];
 			max_payoff = payoff[neigh[chosen_site][k]];
-	   	}
-        }
+		}
+}
 
-    }
-    return;
+}
+return;
 }
 
 /***************************************************************************
@@ -431,8 +419,8 @@ void save_snapshots(int step, int *s, int identifier){
     char output_snaps_freq[200];
 	int i;
 
-	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best/snapshots/Snapshot(%d)Step%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_NOISE%.5f_CONF_%d_%ld_prof.dat", identifier, step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
-                                 P_DIFFUSION, NOISE, NUM_CONF, seed);
+	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best/snapshots/Snapshot(%d)Step%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat", identifier, step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
+                                 P_DIFFUSION, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
 
 	for (i = 0; i < (L2-1); ++i){
@@ -566,9 +554,9 @@ void local_dynamics (int *s, int *actions, double *payoff, unsigned long *empty_
 int main(int argc, char **argv)
 {
     #ifdef SAVESNAPSHOTS
-   	if (argc != 6)
+   	if (argc != 5)
    	{
-  		printf("\nThe program must be called with 5 parameters, T, NUM_DEFECTS, P_DIFFUSION, NOISE and SAVESNAPSHOTS\n");
+  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and SAVESNAPSHOTS\n");
   		exit(1);
    	}
    	else
@@ -576,14 +564,13 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
-		NOISE       = atof(argv[4]);
 
-        SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[5]);
+        SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[4]);
    	}
     #else
-    if (argc != 5)
+    if (argc != 4)
    	{
-  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and NOISE\n");
+  		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
   		exit(1);
    	}
    	else
@@ -591,7 +578,6 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
-		NOISE       = atof(argv[4]);
    	}
     #endif
 
@@ -623,9 +609,9 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/stochastic-choosing-the-best/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_NOISE%.5f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/stochastic-choosing-the-best/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
-                              P_DIFFUSION, NOISE, NUM_CONF, seed);
+                              P_DIFFUSION, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
@@ -650,7 +636,6 @@ void file_initialization(void)
 	fprintf(freq,"# EPSILON_MIN = %5.3f\n", EPSILON_MIN);
 	fprintf(freq,"# NUM_STATES  = %d\n", NUM_STATES);
 	fprintf(freq,"# NUM_ACTIONS = %d\n", NUM_ACTIONS);	
-	fprintf(freq,"# NOISE = %5.3f\n", NOISE);	
 	
 	fprintf(freq,"# Initial configuration: ");
 	switch (INITIALSTATE)
