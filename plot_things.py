@@ -28,14 +28,14 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     ax.set_ylabel(r'$p_d$')
     #plt.gca().invert_yaxis()
 
-    plt.tricontourf(x, y, z, levels = 120, cmap = 'jet_r')
+    plt.tricontourf(x, y, z, levels = np.arange(0, .9001, .005), cmap = 'jet_r')
     cbar = plt.colorbar()
     ax.set_yticks([.01, .1, 1])
     ax.set_ylim(.01, 1.)
     ax.yaxis.set_ticks_position('both')# Ticks on all 4 sides
     ax.xaxis.set_ticks_position('both')
 
-    cbar.set_ticks([.0, .2, .4, .6])
+    cbar.set_ticks([.0, .2, .4, .6, .8, .9])
 
     plt.savefig('heatmap_coop-async-stochastic.png', dpi=400, bbox_inches='tight')
     plt.clf()
