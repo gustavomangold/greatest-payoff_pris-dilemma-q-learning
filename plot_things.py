@@ -29,9 +29,9 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     ax.set_ylabel(r'$p_d$')
     #plt.gca().invert_yaxis()
 
-    plt.tricontourf(x, y, z, levels = 120, cmap = 'jet_r')
+    plt.tricontourf(x, y, z, levels = np.arange(0, .9001, .005), cmap = 'jet_r')
     cbar = plt.colorbar()
-    cbar.set_ticks([.0, .2, .4, .6, .8])
+    cbar.set_ticks([.0, .3, .5, .7, .9])
     ax.set_yticks([.01, .1, 1])
     ax.set_ylim(.01, 1.)
 
