@@ -35,7 +35,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     ax.yaxis.set_ticks_position('both')# Ticks on all 4 sides
     ax.xaxis.set_ticks_position('both')
 
-    cbar.set_ticks([.0, .2, .4, .6, .8, .9])
+    cbar.set_ticks([.0, .3, .5, .7, .9])
 
     plt.savefig('heatmap_coop-async-stochastic.png', dpi=400, bbox_inches='tight')
     plt.clf()
