@@ -1,13 +1,13 @@
- #!/bin/bash
-LC_NUMERIC="en_US.UTF-8"
-
-for mobility in .1 .12 .13 .15 .17 .2 .23 .25 .3 .32 .35 .4
+# !/bin/bash
+# LC_NUMERIC="en_US.UTF-8"
+LANG=en_US # seq 0.1 0.1 0.8
+ 
+for defects in $(seq 0 250 9000)
 do
-        for defects in $(seq 1000 100 3000)
+	for mobility in $(seq .005 .005 .105)
         do
-                echo "1.4 $defects $mobility 0"
-                ./pris_pd_Qlearning_glut 1.4 $defects $mobility 0 &
+                echo "1.4 $defects $mobility "
+                ./pris_pd_Qlearning_glut 1.4 $defects $mobility  &
         done
         wait
 done
-               
