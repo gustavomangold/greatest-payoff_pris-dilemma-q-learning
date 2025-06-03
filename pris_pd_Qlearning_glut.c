@@ -83,6 +83,7 @@ unsigned long  seed, numsteps, num_c, num_cd, num_dc, num_d;
 long           t[MEASURES];
 double         num_c_ave[MEASURES], num_d_ave[MEASURES], num_cd_ave[MEASURES], Q_ave[MEASURES][NUM_STATES][NUM_ACTIONS];
 double         TEMPTATION;
+double         PROPORTION_COPY;
 
 const double    SUCKER = 0.0;
 const double    PP     = 0.0;
@@ -420,7 +421,7 @@ void save_snapshots(int step, int *s, int identifier){
      // the identifier is 0 for states and 1 for actions
      char output_snaps_freq[200];
 	int i;
-	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best-and-mantain/snapshots/Snapshot(%d)Step%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat", identifier, step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), P_DIFFUSION, NUM_CONF, seed);
+	sprintf(output_snaps_freq, "data/without-RL-stochastic-choosing-the-best-and-mantain/snapshots/Snapshot(%d)Step%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_PROPORTION_COPY%.5f_CONF_%d_%ld_prof.dat", identifier, step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), P_DIFFUSION, PROPORTION_COPY, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
 
 	for (i = 0; i < (LL-1); ++i){
@@ -463,62 +464,21 @@ void local_dynamics (int *s, int *actions, double *payoff, unsigned long *empty_
 		if  (initial_s != 0)
 		{
 			initial_s_index = (initial_s == C ? Cindex : Dindex);
-
-			double initial_payoff  = pd_payoff(s, initial_s, chosen_site);
-
-			if (FRANDOM1 < EPSILON) //random
-				random_choice(chosen_site, &new_action, &new_action_index);
-			else // greedy
-				find_maximum_Q_value(chosen_site, &initial_s_index, &new_action, &new_action_index, &maxQ);
+			double initial_payoff  = pd_payoff(s, initial_s, chosen_site);	
+			state_max = initial_s;
 			
-			actions[chosen_site] = new_action_index;
-
-			if (new_action_index != MOVEindex)
-			{
-				state_max = initial_s;
-				
-				if (new_action_index == COMPAREindex){
-					compare_payoff(payoff, s, &state_max, chosen_site, initial_payoff);
-				}
-				else if (new_action_index == STAYindex){
-					state_max = initial_s;
-				}
-
-				int max_state_index = (state_max == C ? Cindex : Dindex);
-				find_maximum_Q_value(chosen_site, &max_state_index, &future_action, &future_action_index, &new_maxQ);
-
-				double final_payoff   = pd_payoff(s, state_max, chosen_site);
-
-				reward = final_payoff;
-
-				// Q[chosen_site][initial_s_index][new_action_index] = (1.- ALPHA)*Q[chosen_site][initial_s_index][new_action_index]  + ALPHA*(final_payoff + GAMMA*new_maxQ);
-				// This is equivalent to expression above:
-				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA*(reward + GAMMA*new_maxQ
-										- Q[chosen_site][initial_s_index][new_action_index]);
-
-				s[chosen_site]      = state_max;
-				payoff[chosen_site] = final_payoff;
-
+			if (FRANDOM1 <= PROPORTION_COPY){
+				compare_payoff(payoff, s, &state_max, chosen_site, initial_payoff);
 			}
-			else // try to move
-			{
-				int moved = rand_diffusion(&chosen_site, s, actions, empty_matrix, which_empty);
-				// Chosen site possivelmente atualizado
 
-				if (moved)
-				{
-    				// payoff changes in new site
-    				double final_payoff  = pd_payoff(s, initial_s, chosen_site);
-    				reward               = final_payoff;
+			int max_state_index = (state_max == C ? Cindex : Dindex);
+			double final_payoff   = pd_payoff(s, state_max, chosen_site);
 
-    				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
+			s[chosen_site]      = state_max;
+			payoff[chosen_site] = final_payoff;
 
-    				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA*new_maxQ
-    										- Q[chosen_site][initial_s_index][new_action_index] );
-
-				payoff[chosen_site] = reward;
-				}
-			}
+			rand_diffusion(&chosen_site, s, actions, empty_matrix, which_empty);
+			// Chosen site possivelmente atualizado
 		} // if(s1!=0)
 	}
 	for (i=num_empty_sites; i< LL; ++i)
@@ -561,9 +521,9 @@ void local_dynamics (int *s, int *actions, double *payoff, unsigned long *empty_
 int main(int argc, char **argv)
 {
     #ifdef SAVESNAPSHOTS
-   	if (argc != 5)
+   	if (argc != 6)
    	{
-			printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and SAVESNAPSHOTS\n");
+			printf("\nThe program must be called with 5 parameters, T, NUM_DEFECTS, P_DIFFUSION, PROPORTION_COPY and SAVESNAPSHOTS\n");
   		exit(1);
    	}
    	else
@@ -571,12 +531,13 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
-		SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[4]);
+		PROPORTION_COPY = atof(argv[4]);
+		SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[5]);
 	}
     #else
-    if (argc != 4)
+    if (argc != 5)
    	{
-  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
+  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and PROPORTION_COPY\n");
   		exit(1);
    	}
    	else
@@ -584,6 +545,7 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
+		PROPORTION_COPY = atof(argv[4]);
    	}
     #endif
 
@@ -615,9 +577,9 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/stochastic-choosing-the-best-and-mantain/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/without-RL-stochastic-choosing-the-best-and-mantain/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_PROPORTION_COPY%.5f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
-                              P_DIFFUSION,  NUM_CONF, seed);
+                              P_DIFFUSION, PROPORTION_COPY,  NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
@@ -626,6 +588,7 @@ void file_initialization(void)
 	fprintf(freq,"# Random seed: %ld\n",seed);
 	fprintf(freq,"# N_CONF = %d \n",NUM_CONF);
 	fprintf(freq,"# TEMPTATION = %5.3f\n", TEMPTATION);
+	fprintf(freq,"# PROPORTION_COPY = %5.3f\n", PROPORTION_COPY);
 	fprintf(freq,"# RR = %5.3f\n", RR);
 	fprintf(freq,"# SUCKER = %5.3f\n", SUCKER);
 
