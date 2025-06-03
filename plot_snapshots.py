@@ -46,40 +46,69 @@ def save_in_dict(data, correlation_dict, id, step):
         data[data == -1] = -1 
 
     if step in correlation_dict.keys():
-        correlation_dict[step] = pearsonr(data, correlation_dict[step])[0]
+        return pearsonr(data, correlation_dict[step])[0]
     else:
-        correlation_dict[step] = data
+        return data
+
+def plot_one_corr(correlation_matrix_dict, main_plot):
+    x_corr = []
+    y_corr = []
+    for key in correlation_matrix_dict.keys():
+        x_corr.append(int(key))
+        y_corr.append(float(correlation_matrix_dict[key]))
+    
+    y_corr = [y for _, y in sorted(zip(x_corr, y_corr))]
+    x_corr = sorted(x_corr)
+
+    return x_corr, y_corr
 
 path = './data/stochastic-choosing-the-best/snapshots/'
 L = 100
+seed_to_plot = '1746538516_prof.dat'
 
-correlation_matrix_dict = {}
+def get_corr_dict_for_seed(seed):
+    correlation_matrix_dict = {}
+    for filename in glob.glob(path + '*' + seed):
+        step = filename.split('Step')[1].split('_T')[0]
+        if '(0)' in filename:
+            data_states = genfromtxt(filename, delimiter=',')
+            data_states = data_states.reshape(L, L)
+            if int(step) in [47280, 0, 15000] and seed_to_plot == seed:
+                plot_matrix(data_states, filename, 0)
+            correlation_matrix_dict[step] = save_in_dict(data_states, correlation_matrix_dict, 0, step)
+        elif '(1)' in filename:
+            data_actions = genfromtxt(filename, delimiter=',')
+            data_actions = data_actions.reshape(L, L)
+            if int(step) in [47280, 0, 15000] and seed_to_plot == seed:
+                plot_matrix(data_actions, filename, 1)
+            correlation_matrix_dict[step] = save_in_dict(data_actions, correlation_matrix_dict, 1, step)
+    return correlation_matrix_dict
 
-for filename in glob.glob(path + '*.dat'):
-    step = filename.split('Step')[1].split('_T')[0]
-    if '(0)' in filename:
-        data_states = genfromtxt(filename, delimiter=',')
-        data_states = data_states.reshape(L, L)
-        if int(step) in [35445, 0, 15000]:
-            plot_matrix(data_states, filename, 0)
-        save_in_dict(data_states, correlation_matrix_dict, 0, step)
-    elif '(1)' in filename:
-        data_actions = genfromtxt(filename, delimiter=',')
-        data_actions = data_actions.reshape(L, L)
-        if int(step) in [35445, 0, 15000]:
-            plot_matrix(data_actions, filename, 1)
-        save_in_dict(data_actions, correlation_matrix_dict, 1, step)
-
-x_corr = []
-y_corr = []
-for key in correlation_matrix_dict.keys():
-    x_corr.append(int(key))
-    y_corr.append(float(correlation_matrix_dict[key]))
-
-y_corr = [y for _, y in sorted(zip(x_corr, y_corr))]
-x_corr = sorted(x_corr)
 plt.figure(figsize = (12, 2), dpi = 500)
 plt.xlabel(r"$t$")
 plt.ylabel(r"$C_{\mathbf{s}, \mathbf{a_G}}$")
-plt.plot(x_corr, y_corr, linewidth = 2., color = '#4f759b')
+
+seeds = []
+for filename in glob.glob(path + '*dat'):
+    seed  = filename.split('_CONF_1_')[1]
+    if seed not in seeds:
+        seeds.append(seed)
+
+for seed in seeds:
+    if seed == seed_to_plot: 
+        main_plot = True
+    else:
+        main_plot = False
+
+    corr_dict = get_corr_dict_for_seed(seed)
+    x_corr, y_corr = plot_one_corr(corr_dict, main_plot)
+    
+    if main_plot:
+        alpha = 1
+        linewidth = 1.5
+    else:
+        alpha = .3
+        linewidth = 1
+    plt.plot(x_corr, y_corr, linewidth = linewidth, color = '#4f759b', alpha = alpha)
+
 plt.savefig('stochastic-choosing-the-best-correlation.png', dpi = 500, bbox_inches = 'tight')

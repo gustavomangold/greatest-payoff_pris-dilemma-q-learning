@@ -5,6 +5,7 @@ import io
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import itertools
+from matplotlib.ticker import ScalarFormatter
 
 def plot_heatmap(x_list, y_list, cooperation_list):
     '''
@@ -17,18 +18,24 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     y = np.array(y_list)
     z = np.array(cooperation_list)
 
-    plt.xlabel(r'$\rho$')
-    plt.ylabel(r'$p_d$')
+    fig, ax = plt.subplots()
 
+    ax.set_yscale('log')
+    ax.yaxis.set_major_formatter(ScalarFormatter())
+    ax.minorticks_off()
+
+    ax.set_xlabel(r'$\rho$')
+    ax.set_ylabel(r'$p_d$')
     #plt.gca().invert_yaxis()
-    
-    plt.yscale('log')
 
-    plt.tricontourf(x, y, z, levels = 70, cmap = 'jet_r')
+    plt.tricontourf(x, y, z, levels = np.arange(0, .9001, .005), cmap = 'jet_r')
     cbar = plt.colorbar()
-    #cbar.set_ticks([.0, .15, .3, .45])
-    plt.yticks(np.arange(.0, 1.05, .1))
-    plt.ylim(.01, 1.)
+    ax.set_yticks([.01, .1, 1])
+    ax.set_ylim(.01, 1.)
+    ax.yaxis.set_ticks_position('both')# Ticks on all 4 sides
+    ax.xaxis.set_ticks_position('both')
+
+    cbar.set_ticks([.0, .3, .5, .7, .9])
 
     plt.savefig('heatmap_coop-async-stochastic.png', dpi=400, bbox_inches='tight')
     plt.clf()
