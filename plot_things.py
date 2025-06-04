@@ -22,7 +22,6 @@ def plot_heatmap(x_list, y_list, cooperation_list):
 
     ax.set_yscale('log')
     ax.yaxis.set_major_formatter(ScalarFormatter())
-    ax.minorticks_off()
 
     ax.set_xlabel(r'$\rho$')
     ax.set_ylabel(r'$p_d$')
@@ -34,6 +33,9 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     ax.set_ylim(.01, 1.)
     ax.yaxis.set_ticks_position('both')# Ticks on all 4 sides
     ax.xaxis.set_ticks_position('both')
+    cbar.ax.tick_params(labelsize=14)
+    ax.tick_params(axis='y', labelsize=label_size_standard)
+    ax.tick_params(axis='x', labelsize=label_size_standard)
 
     cbar.set_ticks([.0, .3, .5, .7, .9])
 
@@ -144,7 +146,8 @@ for filename in glob.glob(path + 'T*.dat'):
         print('Unavailable data for' + filename)
         print(E)
 
-plt.rc('axes', labelsize=16)
+plt.rc('axes', labelsize=17)
+label_size_standard = 14
 
 plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
@@ -161,6 +164,9 @@ marker = itertools.cycle((',', 'P', 'p', '*', '.', 'X', 'P', 'p', 'o'))
 color  = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#4AA6B5", "#335430", "#d02f6a", "#e61976", "#ff1611"))
 
 fig, ax1 = plt.subplots()
+
+plt.tick_params(axis='y', labelsize=label_size_standard)
+plt.tick_params(axis='x', labelsize=label_size_standard)
 
 #codigo horrivel, mas funciona
 # tem que dar sorted com relaçao a coordenada x
