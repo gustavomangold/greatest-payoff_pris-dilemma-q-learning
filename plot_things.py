@@ -23,15 +23,23 @@ def plot_heatmap(x_list, y_list, cooperation_list):
 
     ax.set_yscale('log')
     ax.yaxis.set_major_formatter(ScalarFormatter())
-    ax.minorticks_off()
 
     ax.set_xlabel(r'$\rho$')
     ax.set_ylabel(r'$p_d$')
     #plt.gca().invert_yaxis()
+    # Change x-axis numbers size
+    ax.tick_params(axis='x', labelsize=label_size_standard)
+
+    # Change y-axis numbers size
+    ax.tick_params(axis='y', labelsize=label_size_standard)
+
+    ax.yaxis.set_ticks_position('both')# Ticks on all 4 sides
+    ax.xaxis.set_ticks_position('both')
 
     plt.tricontourf(x, y, z, levels = np.arange(0, .9001, .005), cmap = 'jet_r')
     cbar = plt.colorbar()
     cbar.set_ticks([.0, .3, .5, .7, .9])
+    cbar.ax.tick_params(labelsize=label_size_standard)
     ax.set_yticks([.01, .1, 1])
     ax.set_ylim(.01, 1.)
 
@@ -110,8 +118,8 @@ for filename in glob.glob(path + 'T*.dat'):
 
             """if key <= 0.01:
                 plot_data_values(filename, data, colnames, color, 'q-table')"""
-
-            if (not ([key, x_variable] in check_repeat_params)):
+            # guarantee non repeating parameters and also the correct spacing of .025 of rho
+            if (not ([key, x_variable] in check_repeat_params) and ((x_variable <= 0.975) and ((x_variable * 10000) % 250 == 0) or (x_variable > .975))):
                 if key == 0.:
                     x_static.append(x_variable)
                     y_static.append(mean_coop)
@@ -136,8 +144,14 @@ for filename in glob.glob(path + 'T*.dat'):
         print('Unavailable data for' + filename)
         print(E)
 
-plt.rc('axes', labelsize=16)
+label_size_standard = 14 
 
+plt.rc('axes', labelsize = 17)
+# Change x-axis numbers size
+plt.tick_params(axis='x', labelsize=label_size_standard)
+
+# Change y-axis numbers size
+plt.tick_params(axis='y', labelsize=label_size_standard)
 plot_heatmap(x_axis_to_plot, labels_to_plot, cooperation_plot)
 
 plt.style.use('seaborn-v0_8-ticks')
@@ -145,9 +159,9 @@ plt.style.use('seaborn-v0_8-ticks')
 #codigo horrivel, mas funciona
 # tem que dar sorted com relaçao a coordenada x
 # senao o plot fica errado, fora de ordem as conexoes
-color_plots_static = '#EB6E14'
+color_plots_static = '#FF1F00'
 x_plot, y_plot = zip(*sorted(zip(x_static, y_static),key=lambda x: x[0]))
-plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
+plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=1., linestyle='dotted')
 
 marker = itertools.cycle((',', 'P', 'p', '*', '.', 'X', 'P', 'p', 'o'))
 color  = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#4AA6B5", "#335430", "#d02f6a", "#e61976", "#ff1611"))
@@ -159,12 +173,12 @@ fig, ax1 = plt.subplots()
 # senao o plot fica errado, fora de ordem as conexoes
 color_plots_static = '#EB6E14'
 x_plot, y_plot = zip(*sorted(zip(x_static, y_static),key=lambda x: x[0]))
-ax1.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
+ax1.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=1., linestyle='dotted')
 
 left, bottom, width, height = [0.67, 0.65, 0.2, 0.2]
 ax2 = fig.add_axes([left, bottom, width, height])
 
-ax2.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
+ax2.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=1., linestyle='dotted')
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
@@ -189,11 +203,21 @@ ax1.set_xlim(0.075, 1.01)
 ax2.set_xlim(0.9745, 1.001)
 ax2.set_ylim(.2, .6)
 ax2.set_yticks([.2, .4, .6])
-ax2.tick_params(axis = 'both', which = 'minor', labelsize = 8)
-ax2.tick_params(axis = 'both', which = 'major', labelsize = 8)
+ax2.tick_params(axis = 'both', which = 'minor', labelsize = label_size_standard)
+ax2.tick_params(axis = 'both', which = 'major', labelsize = label_size_standard)
 ax1.set_xlabel(r'$\rho$')
 ax1.set_ylabel(r'$f_c$')
-ax1.legend(loc='upper left', ncol = 1, edgecolor = 'black', framealpha=0.5, prop={'size': 10})
+ax1.legend(loc='upper left', ncol = 1, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
+plt.rc('axes', labelsize = 17)
+# Change x-axis numbers size
+ax1.tick_params(axis='x', labelsize=label_size_standard)
+
+# Change y-axis numbers size
+ax1.tick_params(axis='y', labelsize=label_size_standard)
+ax2.tick_params(axis='x', labelsize=10)
+
+# Change y-axis numbers size
+ax2.tick_params(axis='y', labelsize=10)
 plt.savefig('cooperation_versus_b-per_occupation-async-stochastic-and-mantain.png', dpi=400, bbox_inches='tight')
 
 plt.close()
@@ -203,7 +227,7 @@ plt.cla()
 marker = itertools.cycle((',', 'P', 'p', '*', '.', 'X', 'P', 'p', 'o'))
 color  = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#4AA6B5", "#335430", "#d02f6a", "#e61976", "#ff1611"))
 
-plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=0.75, linestyle='dotted')
+plt.plot(x_plot, y_plot, label = r'$p_d = 0$', color = color_plots_static, alpha=1., linestyle='dotted')
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
