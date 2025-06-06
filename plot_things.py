@@ -5,6 +5,7 @@ import io
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import itertools
+import re
 from matplotlib.ticker import ScalarFormatter
 
 def plot_heatmap(x_list, y_list, cooperation_list):
@@ -92,9 +93,11 @@ y_static = []
 index = 0
 for filename in glob.glob(path + 'T*.dat'):
     data = pd.read_csv(filename, comment = '#', delimiter = ' ', names = colnames, index_col = False)
-
-    key = float(filename.split('P_DIFFUSION')[1][0:4])
-
+    
+    pattern = r"[a-zA-Z]"
+    string  = filename.split('P_DIFFUSION')[1][0:6]
+    string = ''.join(i for i in string if (i.isdigit() or i == '.'))
+    key = float(string)
     data['mean_coop'] = data['f_c'] / (data['f_d'] + data['f_c'])
 
     """#plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')

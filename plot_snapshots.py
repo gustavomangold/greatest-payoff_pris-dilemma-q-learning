@@ -64,7 +64,7 @@ def plot_one_corr(correlation_matrix_dict, main_plot):
 
 path = './data/stochastic-choosing-the-best/snapshots/'
 L = 100
-seed_to_plot = '1746538516_prof.dat'
+seed_to_plot = '1746537949_prof.dat'
 
 def get_corr_dict_for_seed(seed):
     correlation_matrix_dict = {}
@@ -73,13 +73,13 @@ def get_corr_dict_for_seed(seed):
         if '(0)' in filename:
             data_states = genfromtxt(filename, delimiter=',')
             data_states = data_states.reshape(L, L)
-            if int(step) in [47280, 0, 15000] and seed_to_plot == seed:
+            if int(step) in [38423, 0, 15000] and seed_to_plot == seed:
                 plot_matrix(data_states, filename, 0)
             correlation_matrix_dict[step] = save_in_dict(data_states, correlation_matrix_dict, 0, step)
         elif '(1)' in filename:
             data_actions = genfromtxt(filename, delimiter=',')
             data_actions = data_actions.reshape(L, L)
-            if int(step) in [47280, 0, 15000] and seed_to_plot == seed:
+            if int(step) in [38423, 0, 15000] and seed_to_plot == seed:
                 plot_matrix(data_actions, filename, 1)
             correlation_matrix_dict[step] = save_in_dict(data_actions, correlation_matrix_dict, 1, step)
     return correlation_matrix_dict
@@ -111,4 +111,9 @@ for seed in seeds:
         linewidth = 1
     plt.plot(x_corr, y_corr, linewidth = linewidth, color = '#4f759b', alpha = alpha)
 
+label_size_standard = 15
+plt.tick_params(axis = 'y', labelsize = label_size_standard)
+plt.tick_params(axis = 'x', labelsize = label_size_standard)
+plt.rc('axes', labelsize=17)
+#plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
 plt.savefig('stochastic-choosing-the-best-correlation.png', dpi = 500, bbox_inches = 'tight')
