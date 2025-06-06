@@ -420,7 +420,7 @@ void save_snapshots(int step, int *s, int identifier){
      // the identifier is 0 for states and 1 for actions
      char output_snaps_freq[200];
 	int i;
-	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best-and-mantain/snapshots/Snapshot(%d)Step%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat", identifier, step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), P_DIFFUSION, NUM_CONF, seed);
+	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best-and-mantain/snapshots/Snapshot(%d)Step%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.5f_CONF_%d_%ld_prof.dat", identifier, step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), P_DIFFUSION, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
 
 	for (i = 0; i < (LL-1); ++i){
@@ -615,7 +615,7 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/stochastic-choosing-the-best-and-mantain/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/stochastic-choosing-the-best-and-mantain/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.5f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
                               P_DIFFUSION,  NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");

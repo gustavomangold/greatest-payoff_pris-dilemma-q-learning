@@ -97,8 +97,12 @@ color  = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#4AA6B5", "#335430",
 index = 0
 for filename in glob.glob(path + 'T*.dat'):
     data = pd.read_csv(filename, comment = '#', delimiter = ' ', names = colnames, index_col = False)
-
-    key = float(filename.split('P_DIFFUSION')[1][0:4])
+    # this is to match with the correct precision
+    # for backward compatibility
+    pattern = r"[a-zA-Z]"
+    string  = filename.split('P_DIFFUSION')[1][0:6]
+    string = ''.join(i for i in string if (i.isdigit() or i == '.'))
+    key = float(string)
 
     data['mean_coop'] = data['f_c'] / (data['f_d'] + data['f_c'])
 
