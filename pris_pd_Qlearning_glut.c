@@ -478,7 +478,7 @@ void local_dynamics (int *s, int *actions, double *payoff, unsigned long *empty_
 
 				find_maximum_Q_value(chosen_site, &max_state_index, &future_action, &future_action_index, &new_maxQ);
 
-			    double final_payoff   = pd_payoff(s, state_max, chosen_site);
+				double final_payoff   = pd_payoff(s, state_max, chosen_site);
 
 				reward = final_payoff;
 
@@ -498,16 +498,16 @@ void local_dynamics (int *s, int *actions, double *payoff, unsigned long *empty_
 
 				if (moved)
 				{
-    				// payoff changes in new site
-    				double final_payoff  = pd_payoff(s, initial_s, chosen_site);
-    				reward               = final_payoff;
+					// payoff changes in new site
+					double final_payoff  = pd_payoff(s, initial_s, chosen_site);
+					reward               = final_payoff;
 
-    				find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
+					find_maximum_Q_value(chosen_site, &initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
-    				Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA*new_maxQ
-    										- Q[chosen_site][initial_s_index][new_action_index] );
+					Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA*new_maxQ
+											- Q[chosen_site][initial_s_index][new_action_index] );
 
-                    payoff[chosen_site] = reward;
+					payoff[chosen_site] = reward;
 				}
 
 			}
