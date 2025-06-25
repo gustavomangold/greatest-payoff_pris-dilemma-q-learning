@@ -19,7 +19,7 @@ def plot_matrix(data, filename, id):
         vmax = 1
     # -1 hole, 0 compare, 1 move
     elif id == 1:
-        cmap = lcm(['#15100f', '#7900FF', '#e42a15'])
+        cmap = lcm(['#15100f', '#15E42A', '#7900FF'])
         vmin = -1
         vmax = 1
 
@@ -56,7 +56,6 @@ def plot_one_corr(correlation_matrix_dict, main_plot):
     for key in correlation_matrix_dict.keys():
         x_corr.append(int(key))
         y_corr.append(float(correlation_matrix_dict[key]))
-    
     y_corr = [y for _, y in sorted(zip(x_corr, y_corr))]
     x_corr = sorted(x_corr)
 
@@ -64,7 +63,7 @@ def plot_one_corr(correlation_matrix_dict, main_plot):
 
 path = './data/stochastic-choosing-the-best/snapshots/'
 L = 100
-seed_to_plot = '1746537949_prof.dat'
+seed_to_plot = '1750884094_prof.dat'
 
 def get_corr_dict_for_seed(seed):
     correlation_matrix_dict = {}
@@ -73,20 +72,21 @@ def get_corr_dict_for_seed(seed):
         if '(0)' in filename:
             data_states = genfromtxt(filename, delimiter=',')
             data_states = data_states.reshape(L, L)
-            if int(step) in [38423, 0, 15000] and seed_to_plot == seed:
+            if int(step) in [32698, 0, 10000] and seed_to_plot == seed:
                 plot_matrix(data_states, filename, 0)
             correlation_matrix_dict[step] = save_in_dict(data_states, correlation_matrix_dict, 0, step)
         elif '(1)' in filename:
             data_actions = genfromtxt(filename, delimiter=',')
             data_actions = data_actions.reshape(L, L)
-            if int(step) in [38423, 0, 15000] and seed_to_plot == seed:
+            if int(step) in [32698, 0, 10000] and seed_to_plot == seed:
                 plot_matrix(data_actions, filename, 1)
             correlation_matrix_dict[step] = save_in_dict(data_actions, correlation_matrix_dict, 1, step)
     return correlation_matrix_dict
 
+label_size_standard = 15
 plt.figure(figsize = (12, 2), dpi = 500)
-plt.xlabel(r"$t$")
-plt.ylabel(r"$C_{\mathbf{s}, \mathbf{a_G}}$")
+plt.xlabel(r"$t$", fontsize = label_size_standard)
+plt.ylabel(r"$C_{\mathbf{s}, \mathbf{a_G}}$", fontsize = label_size_standard)
 
 seeds = []
 for filename in glob.glob(path + '*dat'):
@@ -105,13 +105,14 @@ for seed in seeds:
     
     if main_plot:
         alpha = 1
-        linewidth = 1.5
+        linewidth = 3 
     else:
         alpha = .3
-        linewidth = 1
+        linewidth = 2
     plt.plot(x_corr, y_corr, linewidth = linewidth, color = '#4f759b', alpha = alpha)
 
-label_size_standard = 15
+plt.yticks([.0, .2, .4, .6])
+plt.xticks([0, 10000, 30000])
 plt.tick_params(axis = 'y', labelsize = label_size_standard)
 plt.tick_params(axis = 'x', labelsize = label_size_standard)
 plt.rc('axes', labelsize=17)

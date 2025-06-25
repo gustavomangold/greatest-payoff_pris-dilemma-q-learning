@@ -14,7 +14,7 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 50;
+const int NUM_CONF       = 1;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
