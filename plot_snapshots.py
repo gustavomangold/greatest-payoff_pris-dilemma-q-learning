@@ -19,7 +19,7 @@ def plot_matrix(data, filename, id):
         vmax = 1
     # -1 hole, 0 compare, 1 stay, 2 move
     elif id == 1:
-        cmap = lcm(['#15100f', '#00FFB7', '#7900FF', '#e42a15'])
+        cmap = lcm(['#15100f', '#15E42A', '#FFE500', '#7900FF'])
         vmin = -1
         vmax = 2
 
@@ -66,7 +66,7 @@ def plot_one_corr(correlation_matrix_dict):
     return x_corr, y_corr
 correlation_matrix_dict = {}
 
-seed_to_plot = '1746740284_prof.dat'
+seed_to_plot = '1750888623_prof.dat'
 
 def get_corr_dict_for_seed(seed):
     correlation_matrix_dict = {}
@@ -86,12 +86,15 @@ def get_corr_dict_for_seed(seed):
             correlation_matrix_dict[step] = save_in_dict(data_actions, correlation_matrix_dict, 1, step)
     return correlation_matrix_dict
 
+label_size_standard = 15
 plt.figure(figsize = (12, 2), dpi = 500)
-plt.xlabel(r"$t$")
-plt.ylabel(r"$C_{\mathbf{s}, \mathbf{a_G}}$")
-plt.yticks([.1, .3, .5])
-plt.ylim(0, .57)
-
+plt.xlabel(r"$t$", fontsize = label_size_standard)
+plt.ylabel(r"$C_{\mathbf{s}, \mathbf{a}_{B-P}}$", fontsize = label_size_standard)
+plt.yticks([.0, .2, .4, .6])
+plt.xticks([0, 50000, 100000])
+plt.ylim(0, 0.6)
+plt.tick_params(axis = 'x', labelsize = label_size_standard)
+plt.tick_params(axis = 'y', labelsize = label_size_standard)
 
 seeds = []
 for filename in glob.glob(path + '*dat'):
@@ -110,10 +113,10 @@ for seed in seeds:
     
     if main_plot:
         alpha = 1
-        linewidth = 1.5
+        linewidth = 3 
     else:
         alpha = .3
-        linewidth = 1
+        linewidth = 2
     plt.plot(x_corr, y_corr, linewidth = linewidth, color = '#4f759b', alpha = alpha)
 
 plt.savefig('stochastic-choosing-the-best-and-maintain-correlation.png', dpi = 500, bbox_inches = 'tight')  
