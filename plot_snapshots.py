@@ -86,8 +86,8 @@ def get_corr_dict_for_seed(seed):
 label_size_standard = 15
 plt.figure(figsize = (12, 2), dpi = 500)
 plt.xlabel(r"$t$", fontsize = label_size_standard)
-plt.ylabel(r"$C_{\mathbf{s}, \mathbf{a_G}}$", fontsize = label_size_standard)
-
+plt.ylabel(r"$C_{\mathbf{s}, \mathbf{a_B}}$", fontsize = label_size_standard)
+plt.ylim(0, 0.73)
 seeds = []
 for filename in glob.glob(path + '*dat'):
     seed  = filename.split('_CONF_1_')[1]
@@ -112,7 +112,7 @@ for seed in seeds:
     plt.plot(x_corr, y_corr, linewidth = linewidth, color = '#4f759b', alpha = alpha)
 
 plt.yticks([.0, .2, .4, .6])
-plt.xticks([0, 10000, 30000])
+plt.xticks([0, 10000, 20000, 30000])
 plt.tick_params(axis = 'y', labelsize = label_size_standard)
 plt.tick_params(axis = 'x', labelsize = label_size_standard)
 plt.rc('axes', labelsize=17)
