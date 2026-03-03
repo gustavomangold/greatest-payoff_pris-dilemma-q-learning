@@ -58,8 +58,8 @@ double P_DIFFUSION;
 int    SNAPSHOT_TEMPORAL_DIFFERENCE;
 
 /****** Q-Learning **********/
-double        EPSILON	  = 1.; //1.0;
-const double  EPSILON_MIN = 0.15; //0.1;
+double        EPSILON; //1.0;
+const double  EPSILON_MIN; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.0001;
 const double  ALPHA       = 0.75; //0.75;
@@ -550,9 +550,9 @@ void local_dynamics (int *s, double *payoff, unsigned long *empty_matrix, unsign
 int main(int argc, char **argv)
 {
     #ifdef SAVESNAPSHOTS
-   	if (argc != 5)
+   	if (argc != 6)
    	{
-  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and SAVESNAPSHOTS\n");
+  		printf("\nThe program must be called with 5 parameters, T, NUM_DEFECTS, P_DIFFUSION, EPSILON_MIN and SAVESNAPSHOTS\n");
   		exit(1);
    	}
    	else
@@ -560,13 +560,14 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
+  		EPSILON_MIN = atof(argv[4]);
 
-        SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[4]);
+        SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[5]);
    	}
     #else
-    if (argc != 4)
+    if (argc != 5)
    	{
-  		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
+  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and EPSILON_MIN\n");
   		exit(1);
    	}
    	else
@@ -574,6 +575,7 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
+  		EPSILON_MIN = atof(argv[4]);
    	}
     #endif
 
@@ -605,9 +607,9 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/stochastic/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+	sprintf(output_file_freq,"data/stochastic/T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.5f_EPSILON%.5f_CONF_%d_%ld_prof.dat",
                               TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
-                              P_DIFFUSION, NUM_CONF, seed);
+                              P_DIFFUSION, EPSILON, NUM_CONF, seed);
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
