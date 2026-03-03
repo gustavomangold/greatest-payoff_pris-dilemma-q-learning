@@ -14,7 +14,7 @@
 /***************************************************************************
  *                          Constant Declarations                           *
  ***************************************************************************/
-const int NUM_CONF       = 1;
+const int NUM_CONF       = 10;
 #define   LSIZE           100 //200           /*lattice size*/
 #define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
@@ -60,8 +60,8 @@ double P_DIFFUSION;
 int    SNAPSHOT_TEMPORAL_DIFFERENCE;
 
 /****** Q-Learning **********/
-double        EPSILON	  = 1.; //1.0;
-const double  EPSILON_MIN = 0.15; //0.1;
+double  EPSILON	  = 1.; //1.0;
+double  EPSILON_MIN; //0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.0001;
 const double  ALPHA       = 0.75; //0.75;
@@ -420,7 +420,7 @@ void save_snapshots(int step, int *s, int identifier){
      // the identifier is 0 for states and 1 for actions
      char output_snaps_freq[200];
 	int i;
-	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best-and-mantain/snapshots/Snapshot(%d)Step%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.5f_CONF_%d_%ld_prof.dat", identifier, step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), P_DIFFUSION, NUM_CONF, seed);
+	sprintf(output_snaps_freq, "data/stochastic-choosing-the-best-and-mantain/snapshots/Snapshot(%d)Step%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.5f_EPSILON_MIN%.5f_CONF_%d_%ld_prof.dat", identifier, step, TEMPTATION, SUCKER, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), P_DIFFUSION, EPSILON_MIN, NUM_CONF, seed);
 	fconf = fopen(output_snaps_freq, "w");
 
 	for (i = 0; i < (LL-1); ++i){
@@ -561,9 +561,9 @@ void local_dynamics (int *s, int *actions, double *payoff, unsigned long *empty_
 int main(int argc, char **argv)
 {
     #ifdef SAVESNAPSHOTS
-   	if (argc != 5)
+   	if (argc != 6)
    	{
-			printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and SAVESNAPSHOTS\n");
+			printf("\nThe program must be called with 5 parameters, T, NUM_DEFECTS, P_DIFFUSION, EPSILON_MIN and SAVESNAPSHOTS\n");
   		exit(1);
    	}
    	else
@@ -571,12 +571,13 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
-		SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[4]);
+  		EPSILON_MIN = atof(argv[4]);
+		SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[5]);
 	}
     #else
-    if (argc != 4)
+    if (argc != 5)
    	{
-  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS and P_DIFFUSION\n");
+  		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, EPSILON_MIN and P_DIFFUSION\n");
   		exit(1);
    	}
    	else
@@ -584,6 +585,7 @@ int main(int argc, char **argv)
   		TEMPTATION  = atof(argv[1]);
   		NUM_DEFECTS = atof(argv[2]);
   		P_DIFFUSION = atof(argv[3]);
+  		EPSILON_MIN = atof(argv[4]);
    	}
     #endif
 
